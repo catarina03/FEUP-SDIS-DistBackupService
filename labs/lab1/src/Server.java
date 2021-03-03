@@ -6,7 +6,7 @@ public class Server {
     public static void main(String[] args) throws IOException {
 
         if(args.length != 1){
-            System.out.println("Usage: java app.UDPServer <port>");
+            System.out.println("Usage: java Server <port>");
         }else{
 
             DNSService dnsService = new DNSService();        //create dns service handler
