@@ -15,10 +15,10 @@ public class Server implements RemoteInterface {
     }
 
     @Override
-    public String register(Request r) throws RemoteException{
+    public String register(String name, String ip_address) throws RemoteException{
 
-        System.out.println("The register method was invoked with " + r.name + " and " + r.ip_address + " .\n");
-        String response = dnsService.addEntry(r);
+        System.out.println("The register method was invoked with " + name + " and " + ip_address + " .\n");
+        String response = dnsService.addEntry(new Request("REGISTER", name, ip_address));
         System.out.println(response);
         return response;
 
@@ -26,10 +26,10 @@ public class Server implements RemoteInterface {
 
 
     @Override
-    public String lookup(Request r){
+    public String lookup(String name){
         
-        System.out.println("The lookup method was invoked with " + r.name + " .\n");
-        String response = dnsService.getEntry(r);
+        System.out.println("The lookup method was invoked with " + name + " .\n");
+        String response = dnsService.getEntry(new Request("LOOKUP",name));
         System.out.println(response);
         return response;
 
@@ -47,7 +47,7 @@ public class Server implements RemoteInterface {
 
         Server serverObj = new Server();
 
-        setVMProperties();
+        //setVMProperties();
 
         Registry registry = getRegistry();
 
@@ -67,13 +67,14 @@ public class Server implements RemoteInterface {
 
 
     // Private Methods
-
+    /*
     private static void setVMProperties(){
-        setPolicy();
+        //setPolicy();
 
         // apenas necessário se corrermos o rmiregistry fora do diretório de execução aka. o rmiregistry assume que o diretório em que corre é a codebase
-        // String codebase = RemoteInterface.class.getProtectionDomain().getCodeSource().getLocation().toString();     //FIXME: no permissions
-        String codebase = "file:///C:/Users/shit/OneDrive/Documentos/Faculdade/3ºano/SDIS/MIEIC-SDIS/lab3/classDir/";
+        // String codebase = RemoteInterface.class.getProtectionDomain().getCodeSource().getLocation().toString();
+        //String codebase = "file:///C:/Users/shit/OneDrive/Documentos/Faculdade/3ºano/SDIS/MIEIC-SDIS/lab3/classDir/";
+        String codebase = "file:///home/catarina/Documents/SDIS-PROJ/labs/lab3/classDir/";
         System.setProperty("java.rmi.server.codebase", codebase);
 
         String useCodebaseOnly = "false";
@@ -89,6 +90,7 @@ public class Server implements RemoteInterface {
             System.setSecurityManager(new SecurityManager());
         }
     }
+    */
 
     private static Registry getRegistry(){
         Registry registry = null;

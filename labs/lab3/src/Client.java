@@ -1,4 +1,3 @@
-
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -24,12 +23,14 @@ public class Client {
         }
 
         try {
+            /*
             String policyFilePath = "file:///C:/temp/rmicodebase/my.policy";
             System.setProperty("java.security.policy", policyFilePath);
 
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
             }
+            */
 
             Registry rmiRegistry = getRegistry(host);
 
@@ -38,11 +39,11 @@ public class Client {
             String response = null;
             if (r.operation.equals("REGISTER")) {
                 System.out.println("Client : " + r.operation + " " + r.name + " " + r.ip_address + " .\n");
-                response = stub.register(r);
+                response = stub.register(r.name, r.ip_address);
             }
             if (r.operation.equals("LOOKUP")) {
                 System.out.println("Client : " + r.operation + " " + r.name + " .\n");
-                response = stub.lookup(r);
+                response = stub.lookup(r.name);
             }
 
             System.out.println("Server response: " + response + ". \n\n");
@@ -72,7 +73,7 @@ public class Client {
 
     // Private Methods
 
-    private static Registry getRegistry(String host) { // TODO : this is a mess, só precisava mesmo disto
+    private static Registry getRegistry(String host) {
         Registry registry = null;
 
         try {

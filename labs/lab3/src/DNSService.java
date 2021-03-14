@@ -3,7 +3,7 @@ import java.util.HashMap;
 public class DNSService {
     private static HashMap<String, String> dnsTable = new HashMap<String, String>();
 
-    public static String addEntry(Request r) { // REGISTER
+    public String addEntry(Request r) { // REGISTER
 
         if (dnsTable.containsKey(r.name)) {
             return "ERROR: Already registered";
@@ -14,7 +14,7 @@ public class DNSService {
 
     }
 
-    public static String getEntry(Request r) { // LOOKUP
+    public String getEntry(Request r) { // LOOKUP
         if (dnsTable.containsKey(r.name.trim())) {
             return "Server: " + dnsTable.get(r.name.trim()) + "\n";
         } else {
