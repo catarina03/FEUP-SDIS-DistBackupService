@@ -1,7 +1,17 @@
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+
 public class Peer implements RemoteInterface{
     
-    public String version;
-    public int id;
+    public static String version;
+    public static int id;
+
+    public Peer() {
+        version="1.0";
+        id=0;
+    }
 
     public static void main(String args[]) throws RemoteException {
 
@@ -10,10 +20,10 @@ public class Peer implements RemoteInterface{
             return;
         }
 
-        this.version = args[1];
-        this.id=args[2];
-        String remoteObjName = args[3];
-        Server serverObj = new Server();
+        version = args[0];
+        id = Integer.parseInt(args[1]);
+        String remoteObjName = args[2];
+        Peer serverObj = new Peer();
 
         Registry registry = getRegistry();
 
@@ -33,9 +43,9 @@ public class Peer implements RemoteInterface{
 
 
     @Override
-    public String backUp(Request r){
+    public String backUp(String pathname, String degree){
 
-        String result="";
+        String result="Peer"+ this.id + ": received BACKUP request.";
 
 
         return result;
@@ -43,18 +53,18 @@ public class Peer implements RemoteInterface{
     }
 
     @Override
-    public String delete(Request r) {
+    public String delete(String pathname) {
 
-        String result = "";
+        String result = "Peer id-" + this.id + ": received DELETE request.";
 
         return result;
 
     }
 
     @Override
-    public String restore(Request r) {
+    public String restore(String pathname) {
 
-        String result = "";
+        String result = "Peer" + this.id + ": received RESTORE request.";
 
         return result;
 
@@ -62,9 +72,9 @@ public class Peer implements RemoteInterface{
 
 
     @Override
-    public String reclaim(Request r) {
+    public String reclaim(int maxDiskSpace) {
 
-        String result = "";
+        String result = "Peer" + this.id + ": received RECLAIM request.";
 
         return result;
 
@@ -73,9 +83,31 @@ public class Peer implements RemoteInterface{
     @Override
     public String state() {
 
-        String result = "";
+        String result = "Peer" + this.id + ": received STATE request.";
 
         return result;
 
+    }
+
+    private static Registry getRegistry() {
+        Registry registry = null;
+
+        try {
+            boolean execute = true;
+            boolean notExecute = false;
+
+            if (execute) {
+                registry = LocateRegistry.getRegistry();
+            }
+
+            if (notExecute) {
+                registry = LocateRegistry.createRegistry(3000);
+            }
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        return registry;
     }
 }
