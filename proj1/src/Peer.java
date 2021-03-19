@@ -1,7 +1,10 @@
 import java.rmi.RemoteException;
+import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+
+import java.net.*;
 
 public class Peer implements RemoteInterface{
     
@@ -13,10 +16,10 @@ public class Peer implements RemoteInterface{
         id=0;
     }
 
-    public static void main(String args[]) throws RemoteException {
+    public static void main(String args[]) throws RemoteException, IOException {
 
-        if (args.length != 3) {
-            System.out.println("Usage: java Peer <protocol_version> <peer_id> <remote_object_name>");
+        if (args.length != 9) {
+            System.out.println("Usage: java Peer <protocol_version> <peer_id> <remote_object_name> <MC_Address> <MC_Port> <MDB_Address> <MDB_Port> <MDR_Address> <MDR_Port>");
             return;
         }
 
@@ -24,6 +27,13 @@ public class Peer implements RemoteInterface{
         id = Integer.parseInt(args[1]);
         String remoteObjName = args[2];
         Peer serverObj = new Peer();
+
+        String multicastControlAddress = args[3];
+        String multicastControlPort = args[4];
+        String multicastDataBackupAddress = args[5];
+        String multicastDataBackupPort = args[6];
+        String multicastDataRestoreAddress = args[7];
+        String multicastDataRestorePort = args[8];
 
 
         // connect to RMI
@@ -43,9 +53,25 @@ public class Peer implements RemoteInterface{
         }
 
 
-        //connect to MC channels
-        PeerMultiThread multichannels = new PeerMultiThread(peerAddress, peerPort);
-        multichannels.start();
+        // address
+        // String peerAddress = InetAddress.getLocalHost().getHostAddress();
+        // //port
+        // InetSocketAddress peerSocket = (InetSocketAddress) InetAddress.getLocalHost();
+        // InetSocketAddress peerSocket = new InetSocketAddress();
+        // int peerPort = peerSocket.getPort();
+
+
+        //connect to MC channel
+        PeerMultiThreadControl multichannelscontrol = new PeerMultiThreadControl(args[1], multicastControlAddress, multicastControlPort);
+        multichannelscontrol.start();
+
+        
+
+        //connect to MDB channel
+
+
+        //connect to MDR channel
+
     }
 
 
