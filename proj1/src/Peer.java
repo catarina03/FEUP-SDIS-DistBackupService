@@ -25,6 +25,8 @@ public class Peer implements RemoteInterface{
         String remoteObjName = args[2];
         Peer serverObj = new Peer();
 
+
+        // connect to RMI
         Registry registry = getRegistry();
 
         try {
@@ -39,6 +41,11 @@ public class Peer implements RemoteInterface{
             System.err.println("Peer Exception : " + e.toString());
             e.printStackTrace();
         }
+
+
+        //connect to MC channels
+        PeerMultiThread multichannels = new PeerMultiThread(peerAddress, peerPort);
+        multichannels.start();
     }
 
 
