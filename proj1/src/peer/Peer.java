@@ -1,15 +1,19 @@
+package peer;
+
+import rmi.*;
+
 import java.rmi.RemoteException;
 import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-
 import java.net.*;
 
 public class Peer implements RemoteInterface{
     
     public static String version;
     public static int id;
+    public static DiskState storage;
 
     public Peer() {
         version="1.0";
@@ -35,6 +39,12 @@ public class Peer implements RemoteInterface{
         String multicastDataRestoreAddress = args[7];
         String multicastDataRestorePort = args[8];
 
+        // start diskState
+        storage = new DiskState(id);
+
+        // TODO: check state and update every few secs to keep storage updated
+
+
 
         // connect to RMI
         Registry registry = getRegistry();
@@ -53,25 +63,19 @@ public class Peer implements RemoteInterface{
         }
 
 
-        // address
-        // String peerAddress = InetAddress.getLocalHost().getHostAddress();
-        // //port
-        // InetSocketAddress peerSocket = (InetSocketAddress) InetAddress.getLocalHost();
-        // InetSocketAddress peerSocket = new InetSocketAddress();
-        // int peerPort = peerSocket.getPort();
-
-
         //connect to MC channel
         PeerMultiThreadControl multichannelscontrol = new PeerMultiThreadControl(args[1], multicastControlAddress, multicastControlPort);
         multichannelscontrol.start();
 
-        
-
         //connect to MDB channel
-
+        PeerMultiThreadBackup multichannelsbackup = new PeerMultiThreadBackup(args[1], multicastDataBackupAddress,
+                multicastDataBackupPort);
+        multichannelsbackup.start();
 
         //connect to MDR channel
-
+        PeerMultiThreadRestore multichannelsrestore = new PeerMultiThreadRestore(args[1], multicastDataRestoreAddress,
+                multicastDataRestorePort);
+        multichannelsrestore.start();
     }
 
 
@@ -80,6 +84,7 @@ public class Peer implements RemoteInterface{
 
         String result="Peer"+ this.id + ": received BACKUP request.";
 
+        File file = new File(pathname);
 
         return result;
 

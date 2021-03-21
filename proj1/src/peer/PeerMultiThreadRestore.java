@@ -1,3 +1,5 @@
+package peer;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -5,14 +7,13 @@ import java.net.MulticastSocket;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PeerMultiThreadControl extends Thread {
+public class PeerMultiThreadRestore extends Thread {
 
     private String peerID, multicastAddress, multicastPort;
     private DatagramPacket packet;
-    private MulticastSocket multicastControlSocket;
+    private MulticastSocket multicastRestoreSocket;
 
-    public PeerMultiThreadControl(String peerID, String multicastAddress, String multicastPort)
-            throws IOException {
+    public PeerMultiThreadRestore(String peerID, String multicastAddress, String multicastPort) throws IOException {
 
         this.peerID = peerID;
         this.multicastAddress = multicastAddress;
@@ -20,8 +21,8 @@ public class PeerMultiThreadControl extends Thread {
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
-        this.multicastControlSocket = new MulticastSocket(Integer.parseInt(multicastPort.trim()));
-        this.multicastControlSocket.joinGroup(group);
+        this.multicastRestoreSocket = new MulticastSocket(Integer.parseInt(multicastPort.trim()));
+        this.multicastRestoreSocket.joinGroup(group);
 
         // create service message & datagramPacket
         String announcement = peerID + " ";
@@ -35,39 +36,38 @@ public class PeerMultiThreadControl extends Thread {
             public void run() {
                 try {
                     // send server announcement to multicast
-                    multicastControlSocket.send(packet);
+                    multicastRestoreSocket.send(packet);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 // print announcement sent to multicast
-                System.out.println("multicastControl: " + multicastAddress + " " + multicastPort + " : PeerID -> " + peerID + "\n");
+                System.out.println("multicastRestore: " + multicastAddress + " " + multicastPort + " : PeerID -> "
+                        + peerID + "\n");
 
             }
         };
         Timer t = new Timer();
         t.schedule(task, 0, 1000);
 
-
         try {
-            //reading from channel
+            // reading from channel
             byte[] mbuf = new byte[256];
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
-            while(true){
-                multicastControlSocket.receive(multicastPacket);
+            while (true) {
+                multicastRestoreSocket.receive(multicastPacket);
                 String multicastResponse = new String(multicastPacket.getData());
-        
+
                 // print multicast received message
                 System.out.println("Received: " + multicastResponse + '\n');
-    
-                mbuf = new byte[256];    
+
+                mbuf = new byte[256];
             }
-            
+
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO: handle exception
+            // TODO: handle exception
         }
-
 
     }
 
