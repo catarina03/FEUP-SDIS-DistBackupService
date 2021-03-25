@@ -7,18 +7,24 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class PeerMultiThreadBackup extends Thread {
+public class PeerMultiThreadBackup implements Runnable {
 
     private String peerID, multicastAddress, multicastPort;
     private DatagramPacket packet;
     private MulticastSocket multicastBackupSocket;
+    private ExecutorService workerService;
+    private MessageHandler messageHandler;
 
-    public PeerMultiThreadBackup(String peerID, String multicastAddress, String multicastPort) throws IOException {
+    public PeerMultiThreadBackup(String peerID, String version, String multicastAddress, String multicastPort,
+            int nThreads) throws IOException {
 
         this.peerID = peerID;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
+        this.messageHandler = new MessageHandler(peerID, version);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
@@ -29,28 +35,13 @@ public class PeerMultiThreadBackup extends Thread {
         String announcement = peerID + " ";
         byte[] buf = announcement.getBytes();
         this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
+
+        // start worker service
+        this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
     public void run() {
-        // TimerTask task = new TimerTask() {
-        //     @Override
-        //     public void run() {
-        //         try {
-        //             // send server announcement to multicast
-        //             multicastBackupSocket.send(packet);
-        //         } catch (IOException e) {
-        //             e.printStackTrace();
-        //         }
-
-        //         // print announcement sent to multicast
-        //         System.out.println("multicastBackup: " + multicastAddress + " " + multicastPort + " : PeerID -> "
-        //                 + peerID + "\n");
-
-        //     }
-        // };
-        // Timer t = new Timer();
-        // t.schedule(task, 0, 1000);
-
+        
         try {
             // reading from channel
             byte[] mbuf = new byte[256];
@@ -60,11 +51,9 @@ public class PeerMultiThreadBackup extends Thread {
                 String multicastResponse = new String(multicastPacket.getData());
 
                 // print multicast received message
-                System.out.println("Received BackUp: " + multicastResponse + '\n');
+                System.out.println("Received-BackUp: " + multicastResponse + '\n');
 
-                // TODO: parse received messages and answer requests
-
-                
+                this.handleMessage(multicastResponse, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
 
                 mbuf = new byte[256];
             }
@@ -76,11 +65,11 @@ public class PeerMultiThreadBackup extends Thread {
 
     }
 
-    public void initiateBackup(File file){
+    public void handleMessage(String message, String packetAddress, int packetPort) {
 
-        // send backup request for each chunk -> pool.createWorkerBackup -> workerBackup.sendChunk&Request 
+        Runnable processMessage = () -> this.messageHandler.handle(message, packetAddress, packetPort);
 
-        // wait for store message -> pool.createWorkerStore -> workerStore.waitForStoreMessage -> true
+        this.workerService.execute(processMessage);
     }
 
 }
