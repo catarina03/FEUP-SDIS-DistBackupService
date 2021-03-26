@@ -9,6 +9,8 @@ public class Protocol {
         this.version=version;
     }
 
+/*
+
     //TODO: argumentos de todos os métodos tem de passar a ser das classes concretas de message
     public void putChunk(Message m){
         System.out.println("Message type " + m.type + " received in Protocol.");
@@ -33,5 +35,7 @@ public class Protocol {
     public void deleted(Message m) {
         System.out.println("Message type " + m.type + " received in Protocol.");
     }
+
+    */
 
 }

@@ -1,17 +1,31 @@
 package peer;
 
-public class Message {
+public abstract class Message {
     
-
-    public String type = "NONE";
+    public Header header;
+    public String body;
+    //public String type = "NONE";
     public String address;
     public int port;
 
-    public Message(String m, String address, int port){
+    /*
+    public Message(String header, String body, String address, int port){
         this.type = "PUTCHUNK";
         this.address = address;
         this.port = port;
     };
+    */
+
+    public Message(Header header, String body, String address, int port){
+        this.header = header;
+        this.body = body;
+        this.address = address;
+        this.port = port;
+    }
+
+    public Message(){
+        
+    }
 
     /*
     abstract public String getHeader();
@@ -19,11 +33,10 @@ public class Message {
     */
 
 
-    public String getHeader(){
-        return "PUTCHUNK";
+    public Header getHeader(){
+        return this.header;
     };
-    public void action(String message){
-        //só a ver
-    };
+
+    public abstract void action();
     
 }

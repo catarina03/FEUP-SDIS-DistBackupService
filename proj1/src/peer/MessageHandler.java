@@ -10,30 +10,29 @@ public class MessageHandler {
         this.version = version;
     }
 
-    public void handle(String message, String address, int port) {
+    public Message parse(String message, String address, int port){
+        // \r\n
+        String[] arrayOfMessage = message.split("\r\n", 2);
 
-        Message m = new Message(message, address, port);
+        String[] arrayOfHeader = arrayOfMessage[0].split(" ", 6);
+        Header messageHeader = new Header(arrayOfHeader[0],arrayOfHeader[1], 
+                                            arrayOfHeader[2], Integer.parseInt(arrayOfHeader[3]), 
+                                            Integer.parseInt(arrayOfHeader[4]), Integer.parseInt(arrayOfHeader[5]));
+        
+        Message chunkMessage = new ErrorMessage();
 
-        // if(m.type.equals("NONE")){
-        //     System.out.println("Message type " + m.type + " not recognized.");
-        //     return;
-        // }
 
-        // if the message is from the own Peer
-        // if(m.getHeader().getSenderId() == this.id) {
-        //     return;
-        // }
+        //chunkMessage.address = address;
+        //chunkMessage.port = port;
 
-        m.address = address;
-        m.port = port;
-
-        switch (m.type) {
+        switch(messageHeader.messageType) {
             case "PUTCHUNK":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA 
                 // inicializar protocol PUTCHUNK(id, version)
-                // fazer action do protocol
-                //this.peer.protocol.putChunk(message);
+                // fazer action da mensagem
                 System.out.println("PUTCHUNK");
+                chunkMessage = new PutchunkMessage(messageHeader, arrayOfMessage[1], address, port);
+                //return chunkMessage;
                 break;
             case "STORED":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA 
@@ -68,7 +67,24 @@ public class MessageHandler {
                 System.out.println("DELETED");
                 break;
             default:
+                System.out.println("Message type " + messageHeader.messageType + " not recognized.");
                 break;
         }
+
+        return chunkMessage;
+
+    }
+
+    public void handle(String message, String address, int port) {
+
+        Message m = this.parse(message, address, port); //?
+
+        // if the message is from the own Peer
+        if(m.header.senderId == this.id) {
+            return;
+        }
+
+        m.action();
+
     }
 }
