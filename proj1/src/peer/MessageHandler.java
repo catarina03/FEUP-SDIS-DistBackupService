@@ -1,5 +1,7 @@
 package peer;
 
+import static java.lang.Integer.parseInt;
+
 public class MessageHandler {
     
     private String id;
@@ -16,8 +18,8 @@ public class MessageHandler {
 
         String[] arrayOfHeader = arrayOfMessage[0].split(" ", 6);
         Header messageHeader = new Header(arrayOfHeader[0],arrayOfHeader[1], 
-                                            arrayOfHeader[2], Integer.parseInt(arrayOfHeader[3]), 
-                                            Integer.parseInt(arrayOfHeader[4]), Integer.parseInt(arrayOfHeader[5]));
+                                            parseInt(arrayOfHeader[2]), arrayOfHeader[3],
+                                            parseInt(arrayOfHeader[4]), parseInt(arrayOfHeader[5]));
         
         Message chunkMessage = new ErrorMessage();
 
@@ -80,7 +82,7 @@ public class MessageHandler {
         Message m = this.parse(message, address, port); //?
 
         // if the message is from the own Peer
-        if(m.header.senderId == this.id) {
+        if(m.header.senderId == parseInt(this.id)) {
             return;
         }
 

@@ -1,7 +1,16 @@
 package peer;
 
+import files.BackupChunk;
+import files.Chunk;
 import rmi.*;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.rmi.RemoteException;
 import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
@@ -9,6 +18,9 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.io.File;
 import java.net.*;
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Peer implements RemoteInterface{
     
@@ -16,6 +28,7 @@ public class Peer implements RemoteInterface{
     public Protocol protocol;
     public static int id;
     public static DiskState storage;
+    public int MAX_SIZE_CHUNK = 64000; //in bytes
 
     public Peer() {
         version="1.0";
@@ -31,6 +44,7 @@ public class Peer implements RemoteInterface{
 
         version = args[0];
         //protocol = new Protocol(version);   // initiate protocol according to version
+
         id = Integer.parseInt(args[1]);
         String remoteObjName = args[2];
         Peer serverObj = new Peer();
@@ -82,12 +96,89 @@ public class Peer implements RemoteInterface{
     }
 
 
+    private String generateFileId(String filePath) {
+        String fileId = "";
+        try {
+            BasicFileAttributes fileMetadata = Files.readAttributes(Path.of(filePath), BasicFileAttributes.class);
+            String fileOwner = Files.getOwner(Path.of(filePath)).toString();
+            String hashMetadata = filePath + fileMetadata.creationTime() + fileMetadata.lastModifiedTime() + fileOwner;
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(hashMetadata.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexStr = new StringBuilder();
+            for(byte singleByte : encodedhash){
+                String m = Integer.toHexString(0xff & singleByte);
+                if(m.length() == 1)
+                    hexStr.append('0');
+                hexStr.append(m);
+            }
+            fileId = hexStr.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileId;
+    }
+
+
     @Override
     public String backUp(String pathname, String degree){
+        String result="Peer"+ id + ": received BACKUP request.";
 
-        String result="Peer"+ this.id + ": received BACKUP request.";
+        int replication_degree = Integer.parseInt(degree);
+        if (replication_degree < 1 || replication_degree > 9) {
+            throw new IllegalArgumentException("Invalid replication degree, must be 1 - 9.");
+        }
+        if (pathname.isEmpty()) {
+            throw new IllegalArgumentException("Empty file path.");
+        }
 
         File file = new File(pathname);
+        if (!file.exists()){
+            throw new IllegalArgumentException("Empty file path.");
+        }
+
+        //storage.fileManager.readFileIntoChunks(pathname);
+        Path path = Paths.get(pathname);
+        Path absolutePath = path.toAbsolutePath();
+
+        int chunk_no = 0;
+        Chunk chunk = new BackupChunk();
+        //ConcurrentHashMap<String, Chunk> chunkMap = new ConcurrentHashMap<>();
+        byte[] buffer = new byte[MAX_SIZE_CHUNK];
+
+        String fileId = generateFileId(pathname);
+
+        try(BufferedInputStream stream = new BufferedInputStream(new FileInputStream(String.valueOf(absolutePath)))) {
+            int size;
+            while((size = stream.read(buffer)) > 0){
+                Header header = new Header("1.0", "PUTCHUNK", id, fileId, chunk_no, replication_degree);
+                chunk = new BackupChunk(Arrays.copyOf(buffer, size), size);
+                //chunkMap.put(fileId + "_" + chunk_no, chunk);
+
+                //send chunk
+                //PutchunkMessage message = new PutchunkMessage(header, chunk, );
+
+                chunk_no++;
+                buffer = new byte[MAX_SIZE_CHUNK];
+            }
+
+            //check if needs 0 size chunk
+            if(chunk.size == MAX_SIZE_CHUNK) {
+                // If the file size is a multiple of the chunk size, the last chunk has size 0.
+                Header header = new Header("1.0", "PUTCHUNK", id, fileId, chunk_no, replication_degree);
+                chunk = new BackupChunk(new byte[0], 0);
+
+                //send chunk
+
+                //chunkMap.put(fileId + "_" + chunk_no, chunk);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
 
         return result;
 

@@ -8,6 +8,7 @@ if [ "$#" -ne 9 ]; then
 fi
 
 # execute peer in new terminal
+cd classDir
 java peer.Peer "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
 
 # java peer.Peer 1.0 1 Hello 232.0.0.0 1111 232.0.0.1 2222 232.0.0.2 3333
