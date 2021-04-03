@@ -8,7 +8,6 @@ import java.net.MulticastSocket;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.Executors;
 
 public class PeerMultiThreadControl implements Runnable {
@@ -42,6 +41,7 @@ public class PeerMultiThreadControl implements Runnable {
     }
 
     public void run() {
+        /*
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -82,14 +82,16 @@ public class PeerMultiThreadControl implements Runnable {
             //TODO: handle exception
         }
 
+         */
+
 
     }
 
      public void handleMessage(String message, String packetAddress, int packetPort) {
 
-        Runnable processMessage = () -> this.messageHandler.handle(message, packetAddress, packetPort);
+        //Runnable processMessage = () -> this.messageHandler.handle(message, packetAddress, packetPort);
 
-        this.workerService.execute(processMessage);
+        //this.workerService.execute(processMessage);
     }
 
 }

@@ -1,7 +1,5 @@
 package files;
 
-import peer.Header;
-
 public class BackupChunk extends Chunk{
     //public String version;
     //public int senderId;

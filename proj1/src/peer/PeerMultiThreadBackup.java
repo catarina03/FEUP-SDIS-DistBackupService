@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,6 +39,14 @@ public class PeerMultiThreadBackup implements Runnable {
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
+    public String getMulticastAddress() {
+        return multicastAddress;
+    }
+
+    public String getMulticastPort() {
+        return multicastPort;
+    }
+
     public void run() {
         
         try {
@@ -71,5 +78,6 @@ public class PeerMultiThreadBackup implements Runnable {
 
         this.workerService.execute(processMessage);
     }
+
 
 }

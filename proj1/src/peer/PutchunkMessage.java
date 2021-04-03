@@ -1,11 +1,16 @@
 package peer;
 
 
+import files.Chunk;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class PutchunkMessage extends Message{
     //public String header;
     //public String body;
 
-    public PutchunkMessage(Header header, String body, String address, int port){
+    public PutchunkMessage(Header header, Chunk body, String address, int port){
         //this.type = "PUTCHUNK";
 
         //TO DO: Parse message 
@@ -28,7 +33,17 @@ public class PutchunkMessage extends Message{
 
     public void action(){
         //TO DO: Actual backup protocol
-        BackupTask task = new BackupTask(this.header, this.body, this.address, this.port);
+        //BackupTask task = new BackupTask(this.header, this.body, this.address, this.port);
+    }
+
+
+
+    public byte[] convertToBytes() throws IOException {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        stream.write(header.toString().getBytes());
+        stream.write(divider.getBytes());
+        stream.write(body.body);
+        return stream.toByteArray();
     }
 
 

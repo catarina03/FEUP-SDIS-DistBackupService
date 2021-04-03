@@ -1,10 +1,16 @@
 package peer;
 
-public abstract class Message {
+import files.Chunk;
+
+import java.io.IOException;
+import java.io.Serializable;
+
+public abstract class Message implements Serializable {
     
     public Header header;
-    public String body;
+    public Chunk body;
     //public String type = "NONE";
+    protected final String divider = "\r\n\r\n";
     public String address;
     public int port;
 
@@ -16,7 +22,7 @@ public abstract class Message {
     };
     */
 
-    public Message(Header header, String body, String address, int port){
+    public Message(Header header, Chunk body, String address, int port){
         this.header = header;
         this.body = body;
         this.address = address;
@@ -36,6 +42,8 @@ public abstract class Message {
     public Header getHeader(){
         return this.header;
     };
+
+    public abstract byte[] convertToBytes() throws IOException;
 
     public abstract void action();
     

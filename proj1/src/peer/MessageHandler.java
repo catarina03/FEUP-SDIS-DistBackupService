@@ -33,7 +33,7 @@ public class MessageHandler {
                 // inicializar protocol PUTCHUNK(id, version)
                 // fazer action da mensagem
                 System.out.println("PUTCHUNK");
-                chunkMessage = new PutchunkMessage(messageHeader, arrayOfMessage[1], address, port);
+                //chunkMessage = new PutchunkMessage(messageHeader, arrayOfMessage[1], address, port);
                 //return chunkMessage;
                 break;
             case "STORED":

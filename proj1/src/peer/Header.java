@@ -1,5 +1,8 @@
 package peer;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class Header {
     public String version;
     public String messageType;
@@ -28,5 +31,10 @@ public class Header {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    @Override
+    public String toString(){
+        return version + messageType + senderId + fileId + chunkNo + replicationDegree;
     }
 }

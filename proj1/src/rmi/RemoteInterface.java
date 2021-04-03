@@ -1,8 +1,7 @@
 package rmi;
 
-import java.rmi.RemoteException;
-
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 public interface RemoteInterface extends Remote{
 

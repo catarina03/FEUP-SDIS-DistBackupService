@@ -1,7 +1,4 @@
-import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
-
+package files;
 
 public class File {
     //public Path filePath;

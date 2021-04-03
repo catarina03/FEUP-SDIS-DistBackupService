@@ -1,8 +1,9 @@
 package peer;
 
-import java.util.concurrent.ConcurrentHashMap;
+import files.Chunk;
+import files.FileManager;
 
-import files.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DiskState {
     //used to manage disk state and get information
