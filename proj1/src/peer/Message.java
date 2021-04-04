@@ -10,7 +10,7 @@ public abstract class Message implements Serializable {
     public Header header;
     public Chunk body;
     //public String type = "NONE";
-    protected final String divider = "\r\n\r\n";
+    protected final String doubleCRLF = "\r\n\r\n";
     public String address;
     public int port;
 

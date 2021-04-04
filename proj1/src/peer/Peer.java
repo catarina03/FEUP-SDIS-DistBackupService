@@ -164,7 +164,7 @@ public class Peer implements RemoteInterface{
         int chunk_no = 0;
         Chunk chunk = new BackupChunk();
         //ConcurrentHashMap<String, Chunk> chunkMap = new ConcurrentHashMap<>();
-        byte[] buffer = new byte[MAX_SIZE_CHUNK];
+        byte[] buffer = new byte[MAX_SIZE_CHUNK]; //TEM QUE SER MENOS
 
         String fileId = generateFileId(pathname);
 
@@ -178,6 +178,7 @@ public class Peer implements RemoteInterface{
                 //send chunk
                 PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), Integer.parseInt(multichannelsbackup.getMulticastPort()));
                 BackupTask backupTask = new BackupTask(message);
+                backupTask.run();
 
                 System.out.println(message.header.toString());
 
@@ -192,6 +193,9 @@ public class Peer implements RemoteInterface{
                 chunk = new BackupChunk(new byte[0], 0);
 
                 //send chunk
+                PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), Integer.parseInt(multichannelsbackup.getMulticastPort()));
+                BackupTask backupTask = new BackupTask(message);
+                backupTask.run();
 
                 //chunkMap.put(fileId + "_" + chunk_no, chunk);
             }

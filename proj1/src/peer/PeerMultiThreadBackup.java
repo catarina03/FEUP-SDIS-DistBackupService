@@ -16,6 +16,7 @@ public class PeerMultiThreadBackup implements Runnable {
     private MulticastSocket multicastBackupSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
+    private final int BUFFER_SIZE = 64000;
 
     public PeerMultiThreadBackup(String peerID, String version, String multicastAddress, String multicastPort,
             int nThreads) throws IOException {
@@ -51,18 +52,19 @@ public class PeerMultiThreadBackup implements Runnable {
         
         try {
             // reading from channel
-            byte[] mbuf = new byte[256];
+            byte[] mbuf = new byte[BUFFER_SIZE];
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
             while (true) {
                 multicastBackupSocket.receive(multicastPacket);
-                String multicastResponse = new String(multicastPacket.getData());
+                String multicastResponseString = new String(multicastPacket.getData());
 
                 // print multicast received message
-                System.out.println("Received-BackUp: " + multicastResponse + '\n');
+                System.out.println("In thread - Received-BackUp");
+                //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 
-                this.handleMessage(multicastResponse, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
+                this.handleMessage(multicastPacket, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
 
-                mbuf = new byte[256];
+                mbuf = new byte[BUFFER_SIZE];
             }
 
         } catch (IOException e) {
@@ -72,9 +74,9 @@ public class PeerMultiThreadBackup implements Runnable {
 
     }
 
-    public void handleMessage(String message, String packetAddress, int packetPort) {
+    public void handleMessage(DatagramPacket packet, String packetAddress, int packetPort) {
 
-        Runnable processMessage = () -> this.messageHandler.handle(message, packetAddress, packetPort);
+        Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
 
         this.workerService.execute(processMessage);
     }

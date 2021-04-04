@@ -25,7 +25,7 @@ public class BackupTask implements Runnable{
 
     public void run(){
 
-        System.out.println("TO DO: Running backup task");
+        //System.out.println("TO DO: Running backup task");
 
         try {
             //get file id and chunk number

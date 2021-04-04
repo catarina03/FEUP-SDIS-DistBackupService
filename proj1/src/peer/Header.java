@@ -2,10 +2,11 @@ package peer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class Header {
-    public String version;
-    public String messageType;
+    public String version;  //3 bytes
+    public String messageType;   //7 bytes max
     public int senderId;
     public String fileId;
     public int chunkNo; 
@@ -35,6 +36,12 @@ public class Header {
 
     @Override
     public String toString(){
-        return version + messageType + senderId + fileId + chunkNo + replicationDegree;
+        return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " " + replicationDegree;
+    }
+
+    public int getSizeInBytes(){
+        String header = this.toString();
+        byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+        return headerBytes.length;
     }
 }

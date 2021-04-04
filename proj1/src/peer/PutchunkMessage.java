@@ -32,6 +32,7 @@ public class PutchunkMessage extends Message{
     
 
     public void action(){
+        System.out.println("REACHED PUTCHUNK ACTION\n");
         //TO DO: Actual backup protocol
         //BackupTask task = new BackupTask(this.header, this.body, this.address, this.port);
     }
@@ -41,7 +42,7 @@ public class PutchunkMessage extends Message{
     public byte[] convertToBytes() throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         stream.write(header.toString().getBytes());
-        stream.write(divider.getBytes());
+        stream.write(doubleCRLF.getBytes());
         stream.write(body.body);
         return stream.toByteArray();
     }

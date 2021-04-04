@@ -1,12 +1,25 @@
 package files;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class File {
     //public Path filePath;
-    public String filename;
+    public String pathname;
+    public String fileId;
+    public int desiredReplicationDegree;
+    ConcurrentHashMap<String, Integer> chunckData;
 
-    public File(String filename){
-        //this.filePath = Paths.get(filename);
-        this.filename = filename;
+    public File(String pathname, String fileId, int desiredReplicationDegree) {
+        this.pathname = pathname;
+        this.fileId = fileId;
+        this.desiredReplicationDegree = desiredReplicationDegree;
+    }
+
+    //TO DO
+    public void addChunk(){
+        String key = "";
+        Integer value = 0;
+        chunckData.put(key, value);
     }
 
 
