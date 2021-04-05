@@ -1,5 +1,6 @@
 package peer;
 
+import files.BackupChunk;
 import files.Chunk;
 
 import java.io.IOException;
@@ -8,20 +9,33 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Random;
 
-public class BackupTask implements Runnable{
+public class BackupTask extends Task{
 
-    public PutchunkMessage putchunkMessage;
-    public String address;
-    public int port;
+    //private Peer peer;
+    //private PutchunkMessage putchunkMessage;
+    //private Header header;
+    //private BackupChunk chunk;
+    //private String address;
+    //private int port;
     private int tries;
 
-    public BackupTask(PutchunkMessage message){
-        this.putchunkMessage = message;
-        this.address=message.address;
-        this.port=message.port;
+/*
+
+    public BackupTask(Peer peer, Header header, Chunk chunk) {
+        super(peer, header, chunk);
         this.tries = 0;
     }
 
+    public BackupTask(Peer peer, PutchunkMessage message) {
+        super(peer, message);
+        this.tries = 0;
+    }
+    */
+
+    public BackupTask(Message message) {
+        super(message);
+        this.tries = 0;
+    }
 
     public void run(){
 
@@ -34,20 +48,23 @@ public class BackupTask implements Runnable{
 
             //create socket
 
-            byte[] messageInBytes = putchunkMessage.convertToBytes();
+            //Header storedHeader = new Header("1.0", this.peer.id, this.message.header.fileId, this.message.header.chunkNo);
+            //StoredMessage storedMessage = new StoredMessage(storedHeader, this.peer.multicastControlAddress, this.peer.multicastControlPort);
+
+            byte[] messageInBytes = this.message.convertToBytes();
 
             if (this.tries < 5){
-                MulticastSocket socket = new MulticastSocket(this.port);
+                MulticastSocket socket = new MulticastSocket(this.message.port);
                 socket.setTimeToLive(1);
-                socket.joinGroup(InetAddress.getByName(address));
+                socket.joinGroup(InetAddress.getByName(this.message.address));
 
 
 
                 //sending request
-                DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.address), this.port);
+                DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.message.address), this.message.port);
                 socket.send(replyPacket);
 
-                System.out.println("In PUTCHUNK - Sent packet: " + putchunkMessage.header.toString());
+                System.out.println("In PUTCHUNK - Sent packet: " + message.header.toString());
                 socket.close();
             }
 

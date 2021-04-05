@@ -7,9 +7,13 @@ import java.io.Serializable;
 public abstract class Chunk implements Serializable{
 //public class Chunk implements Serializable{
     //public int chunk_number;
-    public Header header;
+    //public Header header;
+    private String id;
+    private int size;
+    private int desiredReplicationDegree;
+    private int currentReplicationDegree;
     public byte[] body;
-    public int size;
+
     //public int chunkId;
 
     public Chunk() {
@@ -27,13 +31,33 @@ public abstract class Chunk implements Serializable{
         //this.chunkId = this.header.fileId + "_" + this.chunk_number;
     }
 
-    public String getChunkId(){
-        return this.header.fileId + "_" + this.header.chunkNo;
-
-
+    public Chunk(String id, int size, int desiredReplicationDegree, int currentReplicationDegree, byte[] body) {
+        this.id = id;
+        this.size = size;
+        this.desiredReplicationDegree = desiredReplicationDegree;
+        this.currentReplicationDegree = currentReplicationDegree;
+        this.body = body;
     }
 
+    public String getId() {
+        return id;
+    }
 
+    public int getSize() {
+        return size;
+    }
+
+    public int getDesiredReplicationDegree() {
+        return desiredReplicationDegree;
+    }
+
+    public int getCurrentReplicationDegree() {
+        return currentReplicationDegree;
+    }
+
+    public byte[] getBody() {
+        return body;
+    }
 
 
     

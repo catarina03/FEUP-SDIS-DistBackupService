@@ -11,30 +11,31 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadBackup implements Runnable {
 
-    private String peerID, multicastAddress, multicastPort;
-    private DatagramPacket packet;
+    private Peer peer;
+    private String multicastAddress;
+    private int multicastPort;
+    // private DatagramPacket packet;
     private MulticastSocket multicastBackupSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
     private final int BUFFER_SIZE = 64000;
 
-    public PeerMultiThreadBackup(String peerID, String version, String multicastAddress, String multicastPort,
-            int nThreads) throws IOException {
+    public PeerMultiThreadBackup(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
-        this.peerID = peerID;
+        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
-        this.messageHandler = new MessageHandler(peerID, version);
+        this.messageHandler = new MessageHandler(peer, version);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
-        this.multicastBackupSocket = new MulticastSocket(Integer.parseInt(multicastPort.trim()));
+        this.multicastBackupSocket = new MulticastSocket(multicastPort);
         this.multicastBackupSocket.joinGroup(group);
 
         // create service message & datagramPacket
-        String announcement = peerID + " ";
-        byte[] buf = announcement.getBytes();
-        this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
+        //String announcement = peerID + " ";
+        //byte[] buf = announcement.getBytes();
+        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
 
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
@@ -44,7 +45,7 @@ public class PeerMultiThreadBackup implements Runnable {
         return multicastAddress;
     }
 
-    public String getMulticastPort() {
+    public int getMulticastPort() {
         return multicastPort;
     }
 

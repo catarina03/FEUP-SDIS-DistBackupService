@@ -29,6 +29,12 @@ public abstract class Message implements Serializable {
         this.port = port;
     }
 
+    public Message(Header header, String address, int port) {
+        this.header = header;
+        this.address = address;
+        this.port = port;
+    }
+
     public Message(){
         
     }

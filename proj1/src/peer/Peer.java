@@ -32,6 +32,13 @@ public class Peer implements RemoteInterface{
     public static PeerMultiThreadBackup multichannelsbackup;
     public static PeerMultiThreadRestore multichannelsrestore;
 
+    public String multicastControlAddress;
+    public int multicastControlPort;
+    public String multicastDataBackupAddress;
+    public int multicastDataBackupPort;
+    public String multicastDataRestoreAddress;
+    public int multicastDataRestorePort;
+
     /*
     public Peer() {
         version="1.0";
@@ -43,20 +50,27 @@ public class Peer implements RemoteInterface{
     public Peer(int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort, String mdrAddress, String mdrPort){
         this.id = id;
 
+        this.multicastControlAddress = mcAddress;
+        this.multicastControlPort = Integer.parseInt(mcPort.trim());
+        this.multicastDataBackupAddress = mdbAddress;
+        this.multicastDataBackupPort = Integer.parseInt(mdbPort.trim());
+        this.multicastDataRestoreAddress = mdrAddress;
+        this.multicastDataRestorePort = Integer.parseInt(mdrPort.trim());
+
         try {
             //connect to MC channel
             //PeerMultiThreadControl multichannelscontrol = new PeerMultiThreadControl(args[1], version, multicastControlAddress, multicastControlPort,10);
-            multichannelscontrol = new PeerMultiThreadControl(Integer.toString(id), version, mcAddress, mcPort,10);
+            multichannelscontrol = new PeerMultiThreadControl(this, version, this.multicastControlAddress, this.multicastControlPort,10);
             new Thread(multichannelscontrol).start();
 
             //connect to MDB channel
             //PeerMultiThreadBackup multichannelsbackup = new PeerMultiThreadBackup(args[1], version, multicastDataBackupAddress, multicastDataBackupPort,10);
-            multichannelsbackup = new PeerMultiThreadBackup(Integer.toString(id), version, mdbAddress, mdbPort,10);
+            multichannelsbackup = new PeerMultiThreadBackup(this, version, this.multicastDataBackupAddress, this.multicastDataBackupPort,10);
             new Thread(multichannelsbackup).start();
 
             //connect to MDR channel
             //PeerMultiThreadRestore multichannelsrestore = new PeerMultiThreadRestore(args[1], version, multicastDataRestoreAddress, multicastDataRestorePort,10);
-            multichannelsrestore = new PeerMultiThreadRestore(Integer.toString(id), version, mdrAddress, mdrPort,10);
+            multichannelsrestore = new PeerMultiThreadRestore(this, version, this.multicastDataRestoreAddress, this.multicastDataRestorePort,10);
             new Thread(multichannelsrestore).start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -78,12 +92,7 @@ public class Peer implements RemoteInterface{
         String remoteObjName = args[2];
         //Peer serverObj = new Peer();
 
-        String multicastControlAddress = args[3];
-        String multicastControlPort = args[4];
-        String multicastDataBackupAddress = args[5];
-        String multicastDataBackupPort = args[6];
-        String multicastDataRestoreAddress = args[7];
-        String multicastDataRestorePort = args[8];
+
 
         // start diskState
         storage = new DiskState(Integer.parseInt(args[1]));
@@ -172,11 +181,12 @@ public class Peer implements RemoteInterface{
             int size;
             while((size = stream.read(buffer)) > 0){
                 Header header = new Header("1.0", "PUTCHUNK", this.id, fileId, chunk_no, replication_degree);
-                chunk = new BackupChunk(Arrays.copyOf(buffer, size), size);
+                //chunk = new BackupChunk(Arrays.copyOf(buffer, size), size);
+                chunk = new BackupChunk(fileId + chunk_no, size, replication_degree, 0, Arrays.copyOf(buffer, size));
                 //chunkMap.put(fileId + "_" + chunk_no, chunk);
 
                 //send chunk
-                PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), Integer.parseInt(multichannelsbackup.getMulticastPort()));
+                PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
                 BackupTask backupTask = new BackupTask(message);
                 backupTask.run();
 
@@ -187,13 +197,14 @@ public class Peer implements RemoteInterface{
             }
 
             //check if needs 0 size chunk
-            if(chunk.size == MAX_SIZE_CHUNK) {
+            if(chunk.getSize() == MAX_SIZE_CHUNK) {
                 // If the file size is a multiple of the chunk size, the last chunk has size 0.
                 Header header = new Header("1.0", "PUTCHUNK", id, fileId, chunk_no, replication_degree);
-                chunk = new BackupChunk(new byte[0], 0);
+                //chunk = new BackupChunk(new byte[0], 0);
+                chunk = new BackupChunk(fileId + chunk_no, size, replication_degree, 0, Arrays.copyOf(buffer, size));
 
                 //send chunk
-                PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), Integer.parseInt(multichannelsbackup.getMulticastPort()));
+                PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
                 BackupTask backupTask = new BackupTask(message);
                 backupTask.run();
 

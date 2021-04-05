@@ -9,30 +9,32 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadRestore implements Runnable {
 
-    private String peerID, multicastAddress, multicastPort;
+    private Peer peer;
+    private String multicastAddress;
+    private int multicastPort;
     private DatagramPacket packet;
     private MulticastSocket multicastRestoreSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
     private final int BUFFER_SIZE = 64000;
 
-    public PeerMultiThreadRestore(String peerID, String version, String multicastAddress, String multicastPort,
+    public PeerMultiThreadRestore(Peer peer, String version, String multicastAddress, int multicastPort,
             int nThreads) throws IOException {
 
-        this.peerID = peerID;
+        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
-        this.messageHandler = new MessageHandler(peerID, version);
+        this.messageHandler = new MessageHandler(peer, version);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
-        this.multicastRestoreSocket = new MulticastSocket(Integer.parseInt(multicastPort.trim()));
+        this.multicastRestoreSocket = new MulticastSocket(multicastPort);
         this.multicastRestoreSocket.joinGroup(group);
 
         // create service message & datagramPacket
-        String announcement = peerID + " ";
-        byte[] buf = announcement.getBytes();
-        this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
+        //String announcement = peerID + " ";
+        //byte[] buf = announcement.getBytes();
+        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
 
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
