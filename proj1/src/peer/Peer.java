@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.io.File;
 import java.net.*;
 
 public class Peer implements RemoteInterface{
     
     public static String version;
+    public Protocol protocol;
     public static int id;
     public static DiskState storage;
 
@@ -28,6 +30,7 @@ public class Peer implements RemoteInterface{
         }
 
         version = args[0];
+        //protocol = new Protocol(version);   // initiate protocol according to version
         id = Integer.parseInt(args[1]);
         String remoteObjName = args[2];
         Peer serverObj = new Peer();
@@ -64,18 +67,18 @@ public class Peer implements RemoteInterface{
 
 
         //connect to MC channel
-        PeerMultiThreadControl multichannelscontrol = new PeerMultiThreadControl(args[1], multicastControlAddress, multicastControlPort);
-        multichannelscontrol.start();
+        PeerMultiThreadControl multichannelscontrol = new PeerMultiThreadControl(args[1], version, multicastControlAddress, multicastControlPort,10);
+        new Thread(multichannelscontrol).start();
 
         //connect to MDB channel
-        PeerMultiThreadBackup multichannelsbackup = new PeerMultiThreadBackup(args[1], multicastDataBackupAddress,
-                multicastDataBackupPort);
-        multichannelsbackup.start();
+        PeerMultiThreadBackup multichannelsbackup = new PeerMultiThreadBackup(args[1], version, multicastDataBackupAddress,
+                multicastDataBackupPort,10);
+        new Thread(multichannelsbackup).start();
 
         //connect to MDR channel
-        PeerMultiThreadRestore multichannelsrestore = new PeerMultiThreadRestore(args[1], multicastDataRestoreAddress,
-                multicastDataRestorePort);
-        multichannelsrestore.start();
+        PeerMultiThreadRestore multichannelsrestore = new PeerMultiThreadRestore(args[1], version, multicastDataRestoreAddress,
+                multicastDataRestorePort,10);
+        new Thread(multichannelsrestore).start();
     }
 
 

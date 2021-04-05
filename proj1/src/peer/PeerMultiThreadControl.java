@@ -7,19 +7,25 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executors;
 
-public class PeerMultiThreadControl extends Thread {
+public class PeerMultiThreadControl implements Runnable {
 
     private String peerID, multicastAddress, multicastPort;
     private DatagramPacket packet;
     private MulticastSocket multicastControlSocket;
+    private ExecutorService workerService;
+    private MessageHandler messageHandler;
 
-    public PeerMultiThreadControl(String peerID, String multicastAddress, String multicastPort)
+    public PeerMultiThreadControl(String peerID, String version, String multicastAddress, String multicastPort, int nThreads)
             throws IOException {
 
         this.peerID = peerID;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
+        this.messageHandler = new MessageHandler(peerID, version);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
@@ -30,6 +36,9 @@ public class PeerMultiThreadControl extends Thread {
         String announcement = peerID + " ";
         byte[] buf = announcement.getBytes();
         this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
+
+        // start worker service
+        this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
     public void run() {
@@ -44,7 +53,7 @@ public class PeerMultiThreadControl extends Thread {
                 }
 
                 // print announcement sent to multicast
-                System.out.println("multicastControl: " + multicastAddress + " " + multicastPort + " : PeerID -> " + peerID + "\n");
+                // System.out.println("multicastControl: " + multicastAddress + " " + multicastPort + " : PeerID -> " + peerID + "\n");
 
             }
         };
@@ -63,6 +72,8 @@ public class PeerMultiThreadControl extends Thread {
                 // print multicast received message
                 System.out.println("Received: " + multicastResponse + '\n');
     
+                this.handleMessage(multicastResponse, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
+
                 mbuf = new byte[256];    
             }
             
@@ -72,6 +83,13 @@ public class PeerMultiThreadControl extends Thread {
         }
 
 
+    }
+
+     public void handleMessage(String message, String packetAddress, int packetPort) {
+
+        Runnable processMessage = () -> this.messageHandler.handle(message, packetAddress, packetPort);
+
+        this.workerService.execute(processMessage);
     }
 
 }
