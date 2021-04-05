@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -114,6 +115,8 @@ public class PeerMultiThreadControl implements Runnable {
     }
 
     public void handleMessage(DatagramPacket packet, String packetAddress, int packetPort) {
+
+        System.out.println(Arrays.toString(packet.getData()));
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
 

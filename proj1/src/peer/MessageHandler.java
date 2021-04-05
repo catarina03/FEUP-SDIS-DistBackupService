@@ -35,6 +35,8 @@ public class MessageHandler {
         }
         //Header header = new Header(messageArray.get(0));
         Header newHeader = null;
+
+        // Header PUTCHUNK
         if (headerArray.size() == 6){
             newHeader = new Header(headerArray.get(0).trim(),
                     headerArray.get(1).trim(),
@@ -43,6 +45,8 @@ public class MessageHandler {
                     Integer.parseInt(headerArray.get(4).trim()),
                     Integer.parseInt(headerArray.get(5).trim()));
         }
+
+        //Header STORED
         if (headerArray.size() == 5){
             newHeader = new Header(headerArray.get(0).trim(),
                     headerArray.get(1).trim(),
