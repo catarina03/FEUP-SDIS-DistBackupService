@@ -1,6 +1,6 @@
 package peer;
 
-import files.Chunk;
+import files.BackupChunk;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -8,7 +8,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 public class StoredTask extends Task{
-    public StoredTask(Peer peer, Header header, Chunk chunk) {
+    public StoredTask(Peer peer, Header header, BackupChunk chunk) {
         super(peer, header, chunk);
     }
 
@@ -19,17 +19,16 @@ public class StoredTask extends Task{
 
 
 
-    // MESS - THIS CAME FROM BACKUP TASK
+    // TODO: MESS - THIS CAME FROM BACKUP TASK
     public void run(){
 
-        //System.out.println("TO DO: Running backup task");
 
         try {
-            //get file id and chunk number
-            //String[] req = new String(request).split(" ",5);
-            //String fileID = req[3] , chunkNo = req[4];
-
+            
             //create socket
+            
+            String chunkId = this.header.fileId + this.header.chunkNo;
+            this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
 
             Header storedHeader = new Header("1.0", "STORED", this.peer.id, this.message.header.fileId, this.message.header.chunkNo);
             StoredMessage storedMessage = new StoredMessage(storedHeader, this.peer.multicastControlAddress, this.peer.multicastControlPort);

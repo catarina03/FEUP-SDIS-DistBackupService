@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +24,7 @@ public class PeerMultiThreadBackup implements Runnable {
         this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
-        this.messageHandler = new MessageHandler(peer, version);
+        this.messageHandler = new MessageHandler(peer);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
@@ -57,7 +56,7 @@ public class PeerMultiThreadBackup implements Runnable {
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
             while (true) {
                 multicastBackupSocket.receive(multicastPacket);
-                String multicastResponseString = new String(multicastPacket.getData());
+                // String multicastResponseString = new String(multicastPacket.getData());
 
                 // print multicast received message
                 System.out.println("In thread - Received-BackUp");

@@ -88,7 +88,7 @@ public class Peer implements RemoteInterface{
         version = args[0];
         //protocol = new Protocol(version);   // initiate protocol according to version
 
-        int peerId = Integer.parseInt(args[1]);
+        //id = Integer.parseInt(args[1]);
         String remoteObjName = args[2];
         //Peer serverObj = new Peer();
 

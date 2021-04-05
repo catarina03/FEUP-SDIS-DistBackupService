@@ -7,10 +7,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class PutchunkMessage extends Message{
-    //public String header;
-    //public String body;
 
-    public PutchunkMessage(Header header, Chunk body, String address, int port){
+    /**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+
+	public PutchunkMessage(Header header, Chunk body, String address, int port){
         //this.type = "PUTCHUNK";
 
         //TO DO: Parse message 
@@ -33,7 +38,7 @@ public class PutchunkMessage extends Message{
 
     public void action(){
         System.out.println("REACHED PUTCHUNK ACTION\n");
-        //TO DO: Actual backup protocol
+        // TODO: Actual backup protocol
         //BackupTask task = new BackupTask(this.header, this.body, this.address, this.port);
     }
 

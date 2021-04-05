@@ -1,6 +1,6 @@
 package peer;
 
-import files.Chunk;
+import files.BackupChunk;
 import files.FileManager;
 
 import java.io.File;
@@ -15,7 +15,7 @@ public class DiskState {
     public FileManager fileManager;
     
     //public ConcurrentHashMap<String,Chunk> ownChunks; Peer não guarda próprios chunks, só files I think
-    public ConcurrentHashMap<String,Chunk> backedUpChunks; //Other's chunks that this peer stored
+    public ConcurrentHashMap<String,BackupChunk> backedUpChunks; //Other's chunks that this peer stored
 
     public DiskState(int peerId) {
 
@@ -24,8 +24,8 @@ public class DiskState {
 
         this.fileManager = new FileManager(this.peerId);
 
-        //this.ownChunks = new ConcurrentHashMap<String, Chunk>();
-        this.backedUpChunks = new ConcurrentHashMap<String, Chunk>();
+        //this.files = new ConcurrentHashMap<String, Chunk>();
+        this.backedUpChunks = new ConcurrentHashMap<String, BackupChunk>();
 
         new File("peer" + peerId + "/chunks").mkdirs();
         new File("peer" + peerId + "/files").mkdirs();

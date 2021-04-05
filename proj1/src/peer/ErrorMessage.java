@@ -3,6 +3,11 @@ package peer;
 import java.io.IOException;
 
 public class ErrorMessage extends Message {
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     public ErrorMessage(){
         
     }

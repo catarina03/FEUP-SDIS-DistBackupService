@@ -1,10 +1,14 @@
 package peer;
 
-import files.Chunk;
 
 import java.io.IOException;
 
 public class StoredMessage extends Message{
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     public StoredMessage(Header header, String address, int port) {
         super(header, address, port);
     }

@@ -6,8 +6,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,7 +27,7 @@ public class PeerMultiThreadControl implements Runnable {
         //this.peerID = peer.id;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
-        this.messageHandler = new MessageHandler(peer, version);
+        this.messageHandler = new MessageHandler(peer);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);
@@ -46,58 +44,15 @@ public class PeerMultiThreadControl implements Runnable {
     }
 
     public void run() {
-        /*
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    // send server announcement to multicast
-                    multicastControlSocket.send(packet);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // print announcement sent to multicast
-                // System.out.println("multicastControl: " + multicastAddress + " " + multicastPort + " : PeerID -> " + peerID + "\n");
-
-            }
-        };
-        Timer t = new Timer();
-        t.schedule(task, 0, 1000);
-
-
-        try {
-            //reading from channel
-            byte[] mbuf = new byte[256];
-            DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
-            while(true){
-                multicastControlSocket.receive(multicastPacket);
-                String multicastResponse = new String(multicastPacket.getData());
         
-                // print multicast received message
-                System.out.println("Received: " + multicastResponse + '\n');
-    
-                this.handleMessage(multicastResponse, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
-
-                mbuf = new byte[256];    
-            }
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            //TODO: handle exception
-        }
-
-         */
-
         try {
             // reading from channel
             byte[] mbuf = new byte[BUFFER_SIZE];
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
             while (true) {
                 multicastControlSocket.receive(multicastPacket);
-                String multicastResponseString = new String(multicastPacket.getData());
+                // String multicastResponseString = new String(multicastPacket.getData());
 
-                // print multicast received message
                 System.out.println("In thread - Received-Stored");
                 //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 

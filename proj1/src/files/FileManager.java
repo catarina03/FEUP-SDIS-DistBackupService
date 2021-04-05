@@ -53,19 +53,19 @@ public class FileManager {
 
      */
 
-    private String generateFileId(String filePath) {
-        String hashMetadata = "";
+    // private String generateFileId(String filePath) {
+    //     String hashMetadata = "";
 
-        try {
-            BasicFileAttributes fileMetadata = Files.readAttributes(Path.of(filePath), BasicFileAttributes.class);
-            String fileOwner = Files.getOwner(Path.of(filePath)).toString();
-            hashMetadata = filePath + fileMetadata.creationTime() + fileMetadata.lastModifiedTime() + fileOwner;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    //     try {
+    //         BasicFileAttributes fileMetadata = Files.readAttributes(Path.of(filePath), BasicFileAttributes.class);
+    //         String fileOwner = Files.getOwner(Path.of(filePath)).toString();
+    //         hashMetadata = filePath + fileMetadata.creationTime() + fileMetadata.lastModifiedTime() + fileOwner;
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
 
-        return hashMetadata;
-    }
+    //     return hashMetadata;
+    // }
 
 /*
     public void createDirectory(String directory_name){

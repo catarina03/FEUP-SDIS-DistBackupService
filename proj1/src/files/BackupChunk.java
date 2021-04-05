@@ -8,7 +8,13 @@ public class BackupChunk extends Chunk{
     //public int ReplicationDegree;
 
 
-    public BackupChunk() {
+    /**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public BackupChunk() {
     }
 
     public BackupChunk(byte[] body, int size){
@@ -20,4 +26,5 @@ public class BackupChunk extends Chunk{
     public BackupChunk(String id, int size, int desiredReplicationDegree, int currentReplicationDegree, byte[] body) {
         super(id, size, desiredReplicationDegree, currentReplicationDegree, body);
     }
+
 }

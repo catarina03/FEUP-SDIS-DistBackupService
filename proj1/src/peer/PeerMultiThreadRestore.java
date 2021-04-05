@@ -24,7 +24,7 @@ public class PeerMultiThreadRestore implements Runnable {
         this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
-        this.messageHandler = new MessageHandler(peer, version);
+        this.messageHandler = new MessageHandler(peer);
 
         // join multicast socket
         InetAddress group = InetAddress.getByName(multicastAddress);

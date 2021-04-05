@@ -1,11 +1,13 @@
 package files;
 
-import peer.Header;
-
 import java.io.Serializable;
 
 public abstract class Chunk implements Serializable{
-//public class Chunk implements Serializable{
+/**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    //public class Chunk implements Serializable{
     //public int chunk_number;
     //public Header header;
     private String id;
@@ -57,6 +59,10 @@ public abstract class Chunk implements Serializable{
 
     public byte[] getBody() {
         return body;
+    }
+
+    public void setCurrentReplicationDegree(int newReplicationDegree){
+        this.currentReplicationDegree = newReplicationDegree;
     }
 
 

@@ -1,13 +1,9 @@
 package peer;
 
-import files.BackupChunk;
-import files.Chunk;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Random;
 
 public class BackupTask extends Task{
 

@@ -1,7 +1,5 @@
 package peer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class Header {

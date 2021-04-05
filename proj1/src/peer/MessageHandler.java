@@ -7,23 +7,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static java.lang.Integer.parseInt;
 
 public class MessageHandler {
 
     private Peer peer;
-    //private String id;
-    private String version;
     protected final String doubleCRLF = "\r\n\r\n";
 
-    public MessageHandler(Peer peer, String version){
+    public MessageHandler(Peer peer){
         this.peer = peer;
-        this.version = version;
     }
 
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
 
-        System.out.println("IN MESSAGE HANDLER PROCESS");
+        System.out.println(message.toString());
+
+        System.out.println("IN PROCESS");
 
         String newMessage = new String(message, StandardCharsets.ISO_8859_1);
         ArrayList<String> messageArray = new ArrayList<>(Arrays.asList(newMessage.split(this.doubleCRLF, 2)));
@@ -33,7 +31,7 @@ public class MessageHandler {
         if (headerArray.size() < 5){
             throw new InvalidMessageException("Invalid Header");
         }
-        //Header header = new Header(messageArray.get(0));
+
         Header newHeader = null;
 
         // Header PUTCHUNK
@@ -55,7 +53,7 @@ public class MessageHandler {
                     Integer.parseInt(headerArray.get(4).trim()));
         }
 
-        System.out.println("IN PEER MESSAGE HANDLER PROCESS FUNCTION, JUST RECEIVED A HEADER WITH SIZE " + headerArray.size());
+        System.out.println("IN PEER " + this.peer.id + " MESSAGE HANDLER PROCESS, RECEIVED HEADER WITH SIZE " + headerArray.size());
         System.out.println(headerArray);
 
 
@@ -65,52 +63,45 @@ public class MessageHandler {
             body = messageArray.get(1).getBytes(StandardCharsets.ISO_8859_1);
         }
 
-        System.out.println("IN MESSAGE HANDLER PARSER FROM PEER " + this.peer.id + " - HANDLING " + newHeader.messageType + " FROM " + newHeader.senderId);
-
-
-        // \r\n
-        /*
-        String[] arrayOfMessage = message.split("\r\n", 2);
-
-        String[] arrayOfHeader = arrayOfMessage[0].split(" ", 6);
-        Header messageHeader = new Header(arrayOfHeader[0],arrayOfHeader[1], 
-                                            parseInt(arrayOfHeader[2]), arrayOfHeader[3],
-                                            parseInt(arrayOfHeader[4]), parseInt(arrayOfHeader[5]));
-        */
-        //Message chunkMessage = new ErrorMessage();
-
-
-
-
-        //chunkMessage.address = address;
-        //chunkMessage.port = port;
+        System.out.println("IN MESSAGE PARSER FROM PEER " + this.peer.id + " - HANDLING " + newHeader.messageType + " FROM " + newHeader.senderId);
+  
 
         switch(newHeader.messageType) {
             case "PUTCHUNK":
-                // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-                // inicializar protocol PUTCHUNK(id, version)
-                // fazer action da mensagem
+
+                
 
                 if (newHeader.senderId != this.peer.id){
-                    System.out.println("INSIDE SWITCH CASE FOR PUTCHUNK FROM " + newHeader.senderId);
+                    System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
                     BackupChunk newChunk = new BackupChunk(body, body.length);
-                    //return new PutchunkTask(this.peer, newHeader, newChunk);
+                    
                     StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
                     newTask.run();
                 }
 
-
-                //chunkMessage = new PutchunkMessage(messageHeader, arrayOfMessage[1], address, port);
-                //return chunkMessage;
+                break;
 
             case "STORED":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
                 //this.peer.protocol.stored(message);
-                System.out.println("INSIDE SWITCH CASE FOR STORED FROM " + newHeader.senderId);
+                System.out.println("INSIDE SWITCH FOR STORED FROM " + newHeader.senderId);
+                String chunkId = newHeader.fileId + newHeader.chunkNo;
 
+                System.out.println("Storage before update: " + this.peer.storage.backedUpChunks.toString());
 
-                System.out.println("Stored");
+                System.out.println("Message received: " + newHeader);
+              
+
+                if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.contains(chunkId)){
+                    BackupChunk savedChunk = this.peer.storage.backedUpChunks.get(chunkId);
+                    savedChunk.setCurrentReplicationDegree(savedChunk.getCurrentReplicationDegree() + 1);
+                    this.peer.storage.backedUpChunks.replace(chunkId, savedChunk);
+                    System.out.println("UPDATING CHUNK REPLICATION DEGREE");
+                }
+                
+                System.out.println("Storage after update: " + this.peer.storage.backedUpChunks.toString());
                 break;
+
             case "GETCHUNK":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
                 //this.peer.protocol.getChunk(message);
@@ -143,28 +134,27 @@ public class MessageHandler {
         }
 
 
-
-
-
+        return;
     }
 
     public void handle(DatagramPacket packet, String address, int port) {
 
         System.out.println("IN MESSAGE HANDLER");
 
-        byte[] message = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+        // byte[] message = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
         //System.out.println(message);
+        // System.out.println("fiz o array uwu " + message.toString());
 
         //Message receivedMessage = null; //?
         try {
-            System.out.println("IN MESSAGE HANDLER, GOING TO PROCESS");
-            this.process(message, address, port);
+            System.out.println("GOING TO PROCESS");
+            this.process(packet.getData(), address, port);
             //System.out.println("FINISHED PARSING MESSAGE");
         } catch (InvalidMessageException e) {
             e.printStackTrace();
         }
 
-
+        return;
 
         // if the message is from the own Peer
 /*
