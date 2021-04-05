@@ -12,7 +12,7 @@ public class StoredTask extends Task{
         super(peer, header, chunk);
     }
 
-    public StoredTask(Peer peer, Message message) {
+    public StoredTask(Peer peer, PutchunkMessage message) {
         super(peer, message);
     }
 
@@ -28,7 +28,11 @@ public class StoredTask extends Task{
             //create socket
             
             String chunkId = this.header.fileId + this.header.chunkNo;
-            this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
+            //this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
+
+            //System.out.println(this.peer.storage.backedUpChunks.toString());
+
+            System.out.println("\nIn STORED Task");
 
             Header storedHeader = new Header("1.0", "STORED", this.peer.id, this.message.header.fileId, this.message.header.chunkNo);
             StoredMessage storedMessage = new StoredMessage(storedHeader, this.peer.multicastControlAddress, this.peer.multicastControlPort);
@@ -46,7 +50,7 @@ public class StoredTask extends Task{
                 DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.peer.multicastControlAddress), this.peer.multicastControlPort);
                 socket.send(replyPacket);
 
-                System.out.println("In STORED TASK - Sent packet: " + storedMessage.header.toString());
+                //System.out.println("In STORED TASK - Sent packet: " + storedMessage.header.toString());
                 socket.close();
             //}
 

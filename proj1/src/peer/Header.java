@@ -1,6 +1,7 @@
 package peer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class Header {
     public String version;  //3 bytes
@@ -37,13 +38,41 @@ public class Header {
         this.chunkNo = chunkNo;
     }
 
+    public Header(ArrayList<String> array){
+        // Header PUTCHUNK
+        if (array.size() == 6){
+            this.version = array.get(0).trim();
+            this.messageType = array.get(1).trim();
+            this.senderId = Integer.parseInt(array.get(2).trim());
+            this.fileId = array.get(3).trim();
+            this.chunkNo = Integer.parseInt(array.get(4).trim());
+            this.replicationDegree = Integer.parseInt(array.get(5).trim());
+        }
+
+        //Header STORED
+        if (array.size() == 5){
+            this.version = array.get(0).trim();
+            this.messageType = array.get(1).trim();
+            this.senderId = Integer.parseInt(array.get(2).trim());
+            this.fileId = array.get(3).trim();
+            this.chunkNo = Integer.parseInt(array.get(4).trim());
+        }
+    }
+
+
+
     public void setVersion(String version) {
         this.version = version;
     }
 
     @Override
     public String toString(){
-        return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " " + replicationDegree;
+        if (messageType.equals("PUTCHUNK")){
+            return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " " + replicationDegree;
+        }
+        //if (messageType == "STORED"){
+            return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo;
+        //}
     }
 
     public int getSizeInBytes(){

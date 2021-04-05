@@ -1,6 +1,7 @@
 package peer;
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class StoredMessage extends Message{
@@ -15,7 +16,10 @@ public class StoredMessage extends Message{
 
     @Override
     public byte[] convertToBytes() throws IOException {
-        return new byte[0];
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        stream.write(header.toString().getBytes());
+        stream.write(doubleCRLF.getBytes());
+        return stream.toByteArray();
     }
 
     @Override

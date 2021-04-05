@@ -25,7 +25,7 @@ public class Peer implements RemoteInterface{
     public static String version;
     public Protocol protocol;
     public int id;
-    public static DiskState storage;
+    public DiskState storage;
     public int MAX_SIZE_CHUNK = 64000; //in bytes
 
     public static PeerMultiThreadControl multichannelscontrol;
@@ -49,6 +49,8 @@ public class Peer implements RemoteInterface{
 
     public Peer(int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort, String mdrAddress, String mdrPort){
         this.id = id;
+
+        this.storage = new DiskState(this.id);
 
         this.multicastControlAddress = mcAddress;
         this.multicastControlPort = Integer.parseInt(mcPort.trim());
@@ -95,7 +97,7 @@ public class Peer implements RemoteInterface{
 
 
         // start diskState
-        storage = new DiskState(Integer.parseInt(args[1]));
+
         Peer peer = new Peer(Integer.parseInt(args[1]), args[3], args[4], args[5], args[6], args[7], args[8]);
 
         // TODO: check state and update every few secs to keep storage updated

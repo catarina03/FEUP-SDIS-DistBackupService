@@ -53,7 +53,7 @@ public class PeerMultiThreadControl implements Runnable {
                 multicastControlSocket.receive(multicastPacket);
                 // String multicastResponseString = new String(multicastPacket.getData());
 
-                System.out.println("In thread - Received-Stored");
+                System.out.println("\nIn thread - Received-Stored");
                 //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 
                 this.handleMessage(multicastPacket, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
@@ -71,7 +71,7 @@ public class PeerMultiThreadControl implements Runnable {
 
     public void handleMessage(DatagramPacket packet, String packetAddress, int packetPort) {
 
-        System.out.println(Arrays.toString(packet.getData()));
+        //System.out.println(Arrays.toString(packet.getData()));
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
 

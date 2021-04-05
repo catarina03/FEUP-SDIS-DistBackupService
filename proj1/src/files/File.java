@@ -1,8 +1,9 @@
 package files;
 
+import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class File {
+public class File implements Serializable {
     //public Path filePath;
     public String pathname;
     public String fileId;

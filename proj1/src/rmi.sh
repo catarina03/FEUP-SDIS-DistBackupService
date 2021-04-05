@@ -21,4 +21,6 @@ then
 	port=$1
 fi
 
+cd classDir
+
 rmiregistry $port &

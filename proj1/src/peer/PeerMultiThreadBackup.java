@@ -59,7 +59,7 @@ public class PeerMultiThreadBackup implements Runnable {
                 // String multicastResponseString = new String(multicastPacket.getData());
 
                 // print multicast received message
-                System.out.println("In thread - Received-BackUp");
+                System.out.println("\nIn thread - Received-BackUp");
                 //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 
                 this.handleMessage(multicastPacket, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());

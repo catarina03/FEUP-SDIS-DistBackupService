@@ -17,11 +17,19 @@ public class MessageHandler {
         this.peer = peer;
     }
 
-    public void process(byte[] message, String address, int port) throws InvalidMessageException {
 
-        System.out.println(message.toString());
+
+
+    //public void process(byte[] message, String address, int port) throws InvalidMessageException {
+    public void process(DatagramPacket packet, String address, int port) throws InvalidMessageException {
+
+        //System.out.println(message.toString());
 
         System.out.println("IN PROCESS");
+
+        byte[] message = packet.getData(); //THIS SHIT HERE
+
+        System.out.println("AFTER PROCESS");
 
         String newMessage = new String(message, StandardCharsets.ISO_8859_1);
         ArrayList<String> messageArray = new ArrayList<>(Arrays.asList(newMessage.split(this.doubleCRLF, 2)));
@@ -32,30 +40,7 @@ public class MessageHandler {
             throw new InvalidMessageException("Invalid Header");
         }
 
-        Header newHeader = null;
-
-        // Header PUTCHUNK
-        if (headerArray.size() == 6){
-            newHeader = new Header(headerArray.get(0).trim(),
-                    headerArray.get(1).trim(),
-                    Integer.parseInt(headerArray.get(2).trim()),
-                    headerArray.get(3).trim(),
-                    Integer.parseInt(headerArray.get(4).trim()),
-                    Integer.parseInt(headerArray.get(5).trim()));
-        }
-
-        //Header STORED
-        if (headerArray.size() == 5){
-            newHeader = new Header(headerArray.get(0).trim(),
-                    headerArray.get(1).trim(),
-                    Integer.parseInt(headerArray.get(2).trim()),
-                    headerArray.get(3).trim(),
-                    Integer.parseInt(headerArray.get(4).trim()));
-        }
-
-        System.out.println("IN PEER " + this.peer.id + " MESSAGE HANDLER PROCESS, RECEIVED HEADER WITH SIZE " + headerArray.size());
-        System.out.println(headerArray);
-
+        Header newHeader = new Header(headerArray);
 
 
         byte[] body = new byte[0];
@@ -68,8 +53,6 @@ public class MessageHandler {
 
         switch(newHeader.messageType) {
             case "PUTCHUNK":
-
-                
 
                 if (newHeader.senderId != this.peer.id){
                     System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
@@ -87,19 +70,25 @@ public class MessageHandler {
                 System.out.println("INSIDE SWITCH FOR STORED FROM " + newHeader.senderId);
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
 
-                System.out.println("Storage before update: " + this.peer.storage.backedUpChunks.toString());
+                //System.out.println("Storage before update: " + this.peer.storage.backedUpChunks.toString());
 
-                System.out.println("Message received: " + newHeader);
-              
+                //System.out.println("Message received: " + newHeader);
 
-                if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.contains(chunkId)){
-                    BackupChunk savedChunk = this.peer.storage.backedUpChunks.get(chunkId);
-                    savedChunk.setCurrentReplicationDegree(savedChunk.getCurrentReplicationDegree() + 1);
-                    this.peer.storage.backedUpChunks.replace(chunkId, savedChunk);
+                System.out.println("ID OF HEADER I JUST CREATED: " + newHeader.senderId);
+                System.out.println("ID OF CURRENT PEER: " + this.peer.id);
+
+                if (newHeader.senderId != this.peer.id){
+                    if (this.peer.storage.backedUpChunks.contains(chunkId)){
+                        //BackupChunk savedChunk = this.peer.storage.backedUpChunks.get(chunkId);
+                        //savedChunk.setCurrentReplicationDegree(savedChunk.getCurrentReplicationDegree() + 1);
+                        //this.peer.storage.backedUpChunks.replace(chunkId, savedChunk);
+                        System.out.println("THIS DOOESNT WORK YET BC HASHMAPS");
+                    }
                     System.out.println("UPDATING CHUNK REPLICATION DEGREE");
                 }
+
                 
-                System.out.println("Storage after update: " + this.peer.storage.backedUpChunks.toString());
+                //System.out.println("Storage after update: " + this.peer.storage.backedUpChunks.toString());
                 break;
 
             case "GETCHUNK":
@@ -139,22 +128,23 @@ public class MessageHandler {
 
     public void handle(DatagramPacket packet, String address, int port) {
 
-        System.out.println("IN MESSAGE HANDLER");
+        System.out.println("\nIN MESSAGE HANDLER");
 
-        // byte[] message = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
+        //byte[] message = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
         //System.out.println(message);
-        // System.out.println("fiz o array uwu " + message.toString());
+        //System.out.println("fiz o array uwu " + Arrays.toString(packet.getData()));
 
         //Message receivedMessage = null; //?
         try {
             System.out.println("GOING TO PROCESS");
-            this.process(packet.getData(), address, port);
-            //System.out.println("FINISHED PARSING MESSAGE");
-        } catch (InvalidMessageException e) {
+            //this.process(packet.getData(), address, port);
+            this.process(packet, address, port);
+            System.out.println("FINISHED PARSING MESSAGE\n");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return;
+        //return;
 
         // if the message is from the own Peer
 /*
