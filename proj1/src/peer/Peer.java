@@ -27,6 +27,7 @@ public class Peer implements RemoteInterface{
     public int id;
     public DiskState storage;
     public int MAX_SIZE_CHUNK = 64000; //in bytes
+    //public int MAX_SIZE_CHUNK = 5000; //in bytes
 
     public static PeerMultiThreadControl multichannelscontrol;
     public static PeerMultiThreadBackup multichannelsbackup;

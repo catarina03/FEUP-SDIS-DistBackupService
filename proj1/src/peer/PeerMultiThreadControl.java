@@ -18,6 +18,7 @@ public class PeerMultiThreadControl implements Runnable {
     private MulticastSocket multicastControlSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
+    //private final int BUFFER_SIZE = 64000;
     private final int BUFFER_SIZE = 64000;
 
     public PeerMultiThreadControl(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads)
@@ -56,7 +57,9 @@ public class PeerMultiThreadControl implements Runnable {
                 System.out.println("\nIn thread - Received-Stored");
                 //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 
-                this.handleMessage(multicastPacket, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
+                byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
+
+                this.handleMessage(copy, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
 
                 mbuf = new byte[BUFFER_SIZE];
             }
@@ -69,9 +72,10 @@ public class PeerMultiThreadControl implements Runnable {
 
     }
 
-    public void handleMessage(DatagramPacket packet, String packetAddress, int packetPort) {
+    public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
 
         //System.out.println(Arrays.toString(packet.getData()));
+        //System.out.println("\nControl thread packet bytes:" + Arrays.toString(packet.getData()));
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
 

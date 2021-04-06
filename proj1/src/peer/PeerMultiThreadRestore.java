@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,7 +54,9 @@ public class PeerMultiThreadRestore implements Runnable {
                 // print multicast received message
                 System.out.println("Received-Restore: " + multicastResponseString + '\n');
 
-                this.handleMessage(multicastPacket, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
+                byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
+
+                this.handleMessage(copy, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
 
                 mbuf = new byte[BUFFER_SIZE];
             }
@@ -65,7 +68,7 @@ public class PeerMultiThreadRestore implements Runnable {
 
     }
 
-    public void handleMessage(DatagramPacket packet, String packetAddress, int packetPort) {
+    public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
 

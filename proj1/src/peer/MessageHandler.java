@@ -21,22 +21,20 @@ public class MessageHandler {
 
 
     //public void process(byte[] message, String address, int port) throws InvalidMessageException {
-    public void process(DatagramPacket packet, String address, int port) throws InvalidMessageException {
-
-        //System.out.println(message.toString());
+    public void process(byte[] message, String address, int port) throws InvalidMessageException {
 
         System.out.println("IN PROCESS");
-
-        byte[] message = packet.getData(); //THIS SHIT HERE
-
-        System.out.println("AFTER PROCESS");
 
         String newMessage = new String(message, StandardCharsets.ISO_8859_1);
         ArrayList<String> messageArray = new ArrayList<>(Arrays.asList(newMessage.split(this.doubleCRLF, 2)));
 
         String headerAsString = messageArray.get(0);
         ArrayList<String> headerArray = new ArrayList<>(Arrays.asList(headerAsString.split(" ", 6)));
+
         if (headerArray.size() < 5){
+            System.out.println("\nERROR IN ARRAY RECEIVED");
+            System.out.println("SIZE: " + headerArray.size());
+            System.out.println(headerArray);
             throw new InvalidMessageException("Invalid Header");
         }
 
@@ -126,18 +124,13 @@ public class MessageHandler {
         return;
     }
 
-    public void handle(DatagramPacket packet, String address, int port) {
+    public void handle(byte[] packet, String address, int port) {
 
-        System.out.println("\nIN MESSAGE HANDLER");
-
-        //byte[] message = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
-        //System.out.println(message);
-        //System.out.println("fiz o array uwu " + Arrays.toString(packet.getData()));
+        System.out.println("\nIN MESSAGE HANDLER, GOT THIS PACKET: " + packet);
 
         //Message receivedMessage = null; //?
         try {
             System.out.println("GOING TO PROCESS");
-            //this.process(packet.getData(), address, port);
             this.process(packet, address, port);
             System.out.println("FINISHED PARSING MESSAGE\n");
         } catch (Exception e) {
