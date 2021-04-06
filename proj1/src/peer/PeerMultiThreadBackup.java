@@ -58,11 +58,8 @@ public class PeerMultiThreadBackup implements Runnable {
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
             while (true) {
                 multicastBackupSocket.receive(multicastPacket);
-                // String multicastResponseString = new String(multicastPacket.getData());
 
-                // print multicast received message
                 System.out.println("\nIn thread - Received-BackUp");
-                //System.out.println("Received-BackUp: " + multicastResponseString + '\n');
 
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 
@@ -73,23 +70,13 @@ public class PeerMultiThreadBackup implements Runnable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: handle exception
         }
 
     }
 
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
 
-        //System.out.println("\nBackup thread packet bytes:" + Arrays.toString(packet.getData()));
-
-
-
-
-
-
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
-
-        System.out.println(packet);
 
         this.workerService.execute(processMessage);
     }

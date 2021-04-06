@@ -9,20 +9,16 @@ import java.util.Arrays;
 
 
 public class MessageHandler {
-
     private Peer peer;
     protected final String doubleCRLF = "\r\n\r\n";
+
 
     public MessageHandler(Peer peer){
         this.peer = peer;
     }
 
 
-
-
-    //public void process(byte[] message, String address, int port) throws InvalidMessageException {
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
-
         System.out.println("IN PROCESS");
 
         String newMessage = new String(message, StandardCharsets.ISO_8859_1);
@@ -56,7 +52,8 @@ public class MessageHandler {
                     System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
                     BackupChunk newChunk = new BackupChunk(body, body.length);
                     
-                    StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
+                    //StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
+                    StoredTask newTask = new StoredTask(this.peer, newHeader, newChunk);
                     newTask.run();
                 }
 
@@ -81,6 +78,9 @@ public class MessageHandler {
                         //savedChunk.setCurrentReplicationDegree(savedChunk.getCurrentReplicationDegree() + 1);
                         //this.peer.storage.backedUpChunks.replace(chunkId, savedChunk);
                         System.out.println("THIS DOOESNT WORK YET BC HASHMAPS");
+                    }
+                    else{
+
                     }
                     System.out.println("UPDATING CHUNK REPLICATION DEGREE");
                 }

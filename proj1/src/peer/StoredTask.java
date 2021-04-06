@@ -12,9 +12,15 @@ public class StoredTask extends Task{
         super(peer, header, chunk);
     }
 
+    /*
     public StoredTask(Peer peer, PutchunkMessage message) {
+
         super(peer, message);
+        this.header = message.header;
+        this.chunk = (BackupChunk) message.body;
     }
+
+     */
 
 
 
@@ -24,17 +30,15 @@ public class StoredTask extends Task{
 
 
         try {
-            
-            //create socket
-            
-            String chunkId = this.header.fileId + this.header.chunkNo;
-            //this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
 
-            //System.out.println(this.peer.storage.backedUpChunks.toString());
+            // SAVING CHUNK IF IT DOESN'T EXIST ALREADY
+            String chunkId = this.header.fileId + this.header.chunkNo;
+            this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
+
 
             System.out.println("\nIn STORED Task");
 
-            Header storedHeader = new Header("1.0", "STORED", this.peer.id, this.message.header.fileId, this.message.header.chunkNo);
+            Header storedHeader = new Header("1.0", "STORED", this.peer.id, this.header.fileId, this.header.chunkNo);
             StoredMessage storedMessage = new StoredMessage(storedHeader, this.peer.multicastControlAddress, this.peer.multicastControlPort);
 
             byte[] messageInBytes = storedMessage.convertToBytes();
