@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 public class FileManager {
     public Peer peer;
@@ -39,9 +40,11 @@ public class FileManager {
             
             int size;
             while ((size = stream.read(buffer)) > 0) {
-                chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, 0, Arrays.copyOf(buffer, size));
+                chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
-                  
+                
+                file.chunks.putIfAbsent(chunk.id, chunk.desiredReplicationDegree);
+
                 peer.sendPutChunk(chunk, header);
 
                 chunk_no++;
@@ -51,8 +54,11 @@ public class FileManager {
             //check if needs 0 size chunk
             if(chunk.getSize() == MAX_SIZE_CHUNK) {
                 // If the file size is a multiple of the chunk size, the last chunk has size 0.
-                chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, 0, Arrays.copyOf(buffer, size));
+                chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
+
+                file.chunks.putIfAbsent(chunk.id, chunk.desiredReplicationDegree);
+
                 peer.sendPutChunk(chunk, header);
             }
         } catch (IOException e) {
@@ -61,24 +67,7 @@ public class FileManager {
     }
 
 
-
-    public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo) {
-
-        File newFile = new File("peer" + peerId + "/chunks/" + chunkNo + ".ser");
-           
-        FileOutputStream fileOutputStream;
-        try {
-            fileOutputStream = new FileOutputStream(newFile);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(chunk);
-            objectOutputStream.flush();
-            objectOutputStream.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-    }
+ 
 
 
     // public void sendPutChunk(){

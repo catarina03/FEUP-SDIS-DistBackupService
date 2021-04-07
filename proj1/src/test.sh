@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 # Checking number of arguments
-if [ "$#" -le 2 ]; then
+if [ "$#" -lt 2 ]; then
   echo
   echo "Usage: sh $0 <peer_ap> <sub_protocol> <opnd_1> <opnd_2>"
   exit 1;

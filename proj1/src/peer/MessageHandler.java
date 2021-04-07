@@ -49,8 +49,8 @@ public class MessageHandler {
 
                 if (newHeader.senderId != this.peer.id){
                     System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
-                    BackupChunk newChunk = new BackupChunk(body, body.length);
                     String chunkId = newHeader.fileId + newHeader.chunkNo;
+                    BackupChunk newChunk = new BackupChunk(chunkId, body.length, newHeader.replicationDegree, body);
 
                     // STORES CHUNK
                     this.peer.storage.backedUpChunks.putIfAbsent(chunkId, newChunk);
@@ -65,7 +65,7 @@ public class MessageHandler {
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                     currentChunkStorageList.add(this.peer.id);
                    
-                    this.peer.fileManager.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo);
+                    this.peer.storage.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo);
 
                     System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
                     System.out.println(this.peer.storage.chunksReplicationDegree);

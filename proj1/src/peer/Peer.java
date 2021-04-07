@@ -50,6 +50,9 @@ public class Peer implements RemoteInterface {
         this.id = id;
 
         this.storage = new DiskState(this.id);
+        this.storage.recoverState();
+        this.storage.updateState();
+
         this.fileManager = new FileManager(this);
 
         this.multicastControlAddress = mcAddress;
@@ -145,80 +148,22 @@ public class Peer implements RemoteInterface {
 
         // create backup system file
         BackupFile systemFile = new BackupFile(pathname, replication_degree);
-        this.storage.files.putIfAbsent(systemFile.fileId, systemFile);
-
+        
         Path path = Paths.get(pathname);
         Path absolutePath = path.toAbsolutePath();
-        // ConcurrentHashMap<String, BackupChunk> chunkMap = storage.fileManager.readFileIntoChunks(absolutePath, systemFile);
         
-        
+        storage.saveFileToDirectory(this.id, systemFile);
         fileManager.readFileIntoChunks(absolutePath, systemFile);
-
-        // for (String chunk_name : chunkMap.keySet()) {
-        //     int chunk_no = Integer.parseInt(chunk_name.split("_")[1]);
-        //     Header header = new Header("1.0", "PUTCHUNK", this.id, systemFile.fileId, chunk_no, replication_degree);
-
-        //     PutchunkMessage message = new PutchunkMessage(header, chunkMap.get(chunk_name),
-        //             multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
-        //     BackupTask backupTask = new BackupTask(message);
-        //     backupTask.run();
-
-        //     System.out.println(message.header.toString());
-        // }
-
-        // try(BufferedInputStream stream = new BufferedInputStream(new
-        // FileInputStream(String.valueOf(absolutePath)))) {
-        // int size;
-        // while((size = stream.read(buffer)) > 0){
-        // Header header = new Header("1.0", "PUTCHUNK", this.id, fileId, chunk_no,
-        // replication_degree);
-        // //chunk = new BackupChunk(Arrays.copyOf(buffer, size), size);
-        // chunk = new BackupChunk(fileId + chunk_no, size, replication_degree, 0,
-        // Arrays.copyOf(buffer, size));
-        // //chunkMap.put(fileId + "_" + chunk_no, chunk);
-
-        // send chunk
-        // PutchunkMessage message = new PutchunkMessage(header, chunk,
-        // multichannelsbackup.getMulticastAddress(),
-        // multichannelsbackup.getMulticastPort());
-        // BackupTask backupTask = new BackupTask(message);
-        // backupTask.run();
-
-        // System.out.println(message.header.toString());
-
-        // chunk_no++;
-        // buffer = new byte[MAX_SIZE_CHUNK];
-        // }
-
-        // check if needs 0 size chunk
-        // if(chunk.getSize() == MAX_SIZE_CHUNK) {
-        // If the file size is a multiple of the chunk size, the last chunk has size 0.
-        // Header header = new Header("1.0", "PUTCHUNK", id, fileId, chunk_no,
-        // replication_degree);
-        // //chunk = new BackupChunk(new byte[0], 0);
-        // chunk = new BackupChunk(fileId + chunk_no, size, replication_degree, 0,
-        // Arrays.copyOf(buffer, size));
-
-        // send chunk
-        // PutchunkMessage message = new PutchunkMessage(header, chunk,
-        // multichannelsbackup.getMulticastAddress(),
-        // multichannelsbackup.getMulticastPort());
-        // BackupTask backupTask = new BackupTask(message);
-        // backupTask.run();
-
-        // chunkMap.put(fileId + "_" + chunk_no, chunk);
-        // }
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-
+        
+        this.storage.files.putIfAbsent(systemFile.fileId, systemFile);
+        
         return result;
     }
 
     public void sendPutChunk(BackupChunk chunk, Header header) {
 
-        PutchunkMessage message = new PutchunkMessage(header, chunk,
-                multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
+        PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(),
+                multichannelsbackup.getMulticastPort());
         BackupTask backupTask = new BackupTask(this, message);
         backupTask.run();
 
@@ -254,11 +199,7 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String state() {
-
-        String result = "Peer" + this.id + ": received STATE request.";
-
-        return result;
-
+        return this.storage.toString();
     }
 
     private static Registry getRegistry() {
