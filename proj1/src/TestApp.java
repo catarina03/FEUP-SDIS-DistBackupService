@@ -1,9 +1,9 @@
+import rmi.RemoteInterface;
+
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-
-import rmi.*;
 
 /**
  * Class that represents the client that can communicate with a peer and test its services
