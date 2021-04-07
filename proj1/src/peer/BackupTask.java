@@ -15,9 +15,8 @@ public class BackupTask extends Task{
     //private BackupChunk chunk;
     //private String address;
     //private int port;
-    private final int NUMBER_OF_WORKERS = 5;
     private int time = 1;
-    protected ScheduledThreadPoolExecutor scheduler;
+
     private int tries;
 
 /*
@@ -57,9 +56,9 @@ public class BackupTask extends Task{
             byte[] messageInBytes = this.message.convertToBytes();
             String chunkId = message.header.fileId + message.header.chunkNo;
 
-            this.peer.storage.sentChunksReplicationDegree.putIfAbsent(chunkId, 0);
+            this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 0);
 
-            if (this.peer.storage.sentChunksReplicationDegree.get(chunkId) < message.header.replicationDegree){
+            if (this.peer.storage.chunksReplicationDegree.get(chunkId) < message.header.replicationDegree){
                 MulticastSocket socket = new MulticastSocket(this.message.port);
                 socket.setTimeToLive(1);
                 socket.joinGroup(InetAddress.getByName(this.message.address));

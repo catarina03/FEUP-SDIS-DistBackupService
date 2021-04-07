@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 
 public class MessageHandler {
@@ -51,6 +52,28 @@ public class MessageHandler {
                 if (newHeader.senderId != this.peer.id){
                     System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
                     BackupChunk newChunk = new BackupChunk(body, body.length);
+                    String chunkId = newHeader.fileId + newHeader.chunkNo;
+
+                    // STORES CHUNK
+                    this.peer.storage.backedUpChunks.putIfAbsent(chunkId, newChunk);
+
+                    // INCREASES REPLICATION DEGREE OF STORED CHUNK
+                    Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
+                    if (currentReplicationDegree != null){
+                        this.peer.storage.chunksReplicationDegree.replace(chunkId, currentReplicationDegree + 1);
+                    }
+
+                    // UPDATES THE LIST OF CHUNKS' LOCATION
+                    ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
+                    currentChunkStorageList.add(this.peer.id);
+
+
+                    System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
+                    System.out.println(this.peer.storage.chunksReplicationDegree);
+
+                    System.out.println("\nUPDATING CHUNK LOCATION");
+                    System.out.println(this.peer.storage.chunksLocation);
+
                     
                     //StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
                     StoredTask newTask = new StoredTask(this.peer, newHeader, newChunk);
@@ -63,26 +86,44 @@ public class MessageHandler {
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
                 //this.peer.protocol.stored(message);
                 System.out.println("INSIDE SWITCH FOR STORED FROM " + newHeader.senderId);
-                String chunkId = newHeader.fileId + newHeader.chunkNo;
+                //String chunkId = newHeader.fileId + newHeader.chunkNo;
 
                 //System.out.println("Storage before update: " + this.peer.storage.backedUpChunks.toString());
 
                 //System.out.println("Message received: " + newHeader);
 
-                System.out.println("ID OF HEADER I JUST CREATED: " + newHeader.senderId);
-                System.out.println("ID OF CURRENT PEER: " + this.peer.id);
+                //System.out.println("ID OF HEADER I JUST CREATED: " + newHeader.senderId);
+                //System.out.println("ID OF CURRENT PEER: " + this.peer.id);
 
                 if (newHeader.senderId != this.peer.id){
-                    if (this.peer.storage.backedUpChunks.contains(chunkId)){
-                        //BackupChunk savedChunk = this.peer.storage.backedUpChunks.get(chunkId);
-                        //savedChunk.setCurrentReplicationDegree(savedChunk.getCurrentReplicationDegree() + 1);
-                        //this.peer.storage.backedUpChunks.replace(chunkId, savedChunk);
-                        System.out.println("THIS DOOESNT WORK YET BC HASHMAPS");
-                    }
-                    else{
+                    String chunkId = newHeader.fileId + newHeader.chunkNo;
 
+                    ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
+                    if (!currentChunkStorageList.contains(newHeader.senderId)){
+                        // INCREASES REPLICATION DEGREE OF STORED CHUNK
+                        Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
+                        if (currentReplicationDegree != null){
+                            this.peer.storage.chunksReplicationDegree.replace(chunkId, currentReplicationDegree + 1);
+                        }
+
+                        // UPDATES THE LIST OF CHUNKS' LOCATION
+                        //ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
+                        currentChunkStorageList.add(newHeader.senderId);
                     }
-                    System.out.println("UPDATING CHUNK REPLICATION DEGREE");
+
+
+
+                    // UPDATES THE LIST OF CHUNKS' LOCATION
+                    //ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
+                    //currentChunkStorageList.add(newHeader.senderId);
+
+
+
+                    System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
+                    System.out.println(this.peer.storage.chunksReplicationDegree);
+
+                    System.out.println("\nUPDATING CHUNK LOCATION");
+                    System.out.println(this.peer.storage.chunksLocation);
                 }
 
                 

@@ -2,11 +2,15 @@ package peer;
 
 import files.BackupChunk;
 
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+
 public abstract class Task implements Runnable{
     protected Peer peer;
     protected Message message;
     protected Header header;
     protected BackupChunk chunk;
+    protected ScheduledThreadPoolExecutor scheduler;
+    protected final int NUMBER_OF_WORKERS = 5;
 
     //BACKUP TASK
     public Task(Message message) {

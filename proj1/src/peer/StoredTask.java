@@ -6,34 +6,39 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Random;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class StoredTask extends Task{
     public StoredTask(Peer peer, Header header, BackupChunk chunk) {
         super(peer, header, chunk);
+
+        this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
-    /*
-    public StoredTask(Peer peer, PutchunkMessage message) {
 
-        super(peer, message);
-        this.header = message.header;
-        this.chunk = (BackupChunk) message.body;
-    }
-
-     */
-
-
-
-
-    // TODO: MESS - THIS CAME FROM BACKUP TASK
     public void run(){
-
-
         try {
-
             // SAVING CHUNK IF IT DOESN'T EXIST ALREADY
+            /*
             String chunkId = this.header.fileId + this.header.chunkNo;
-            this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
+            if (this.peer.id != header.senderId){
+
+                this.peer.storage.backedUpChunks.putIfAbsent(chunkId, chunk);
+            }
+
+
+            Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
+            if (currentReplicationDegree != null){
+                this.peer.storage.chunksReplicationDegree.replace(chunkId, currentReplicationDegree + 1);
+            }
+
+            ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
+            currentChunkStorageList.add(this.peer.id);
+
+             */
 
 
             System.out.println("\nIn STORED Task");
@@ -43,65 +48,41 @@ public class StoredTask extends Task{
 
             byte[] messageInBytes = storedMessage.convertToBytes();
 
-            //if (this.tries < 5){
-                MulticastSocket socket = new MulticastSocket(this.peer.multicastControlPort);
-                socket.setTimeToLive(1);
-                socket.joinGroup(InetAddress.getByName(this.peer.multicastControlAddress));
+            Random rand = new Random();
+            int upperbound = 401;
 
+            //generate random values from 0-400
+            int randomDelay = rand.nextInt(upperbound);
 
-
-                //sending request
-                DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.peer.multicastControlAddress), this.peer.multicastControlPort);
-                socket.send(replyPacket);
-
-                //System.out.println("In STORED TASK - Sent packet: " + storedMessage.header.toString());
-                socket.close();
-            //}
-
-
-            //int time = new Random().nextInt(400);
-            //socket.setSoTimeout(time); //max time it will listen to
-
-            //listen for x time
-            //long oldTime = System.currentTimeMillis();
-            //byte[] b = new byte[65000];
-
-            //DatagramPacket receive = new DatagramPacket(b,b.length);
-            //while(System.currentTimeMillis()-oldTime < time){
-/*
-            try {
-                socket.receive(receive);
-            }catch (IOException e)
-            {
-                System.out.println("\nReached time out - no one has sent PUTCHUNK!");
-                break;
-            }
-
-            String[] ms = new String(receive.getData()).split(" ",6);
-
-*/
-
-            /*
-            if(ms[1]=="PUTCHUNK" && ms[3]==message.header.fileId && ms[4]==message.header.chunkNo){
-                System.out.println("Someone already sent it!");
-                socket.close();
-                return;//exit
-            }
-
-             */
-            //}
-
+            scheduler.schedule( () -> sendStorageMessage(messageInBytes), randomDelay, TimeUnit.MILLISECONDS);
 
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        //Ve se o ficheiro nao é seu, se não for:
-        //Esperar 0 - 400 ms
-        //Guarda o chunk se o replication degree ainda nao for suficiente
-        //Manda o STORED
+
     }
+
+
+    public void sendStorageMessage(byte[] messageInBytes){
+        MulticastSocket socket = null;
+        try {
+            socket = new MulticastSocket(this.peer.multicastControlPort);
+            socket.setTimeToLive(1);
+            socket.joinGroup(InetAddress.getByName(this.peer.multicastControlAddress));
+
+            //sending request
+            DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.peer.multicastControlAddress), this.peer.multicastControlPort);
+            socket.send(replyPacket);
+
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 
 
