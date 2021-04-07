@@ -43,7 +43,7 @@ public class FileManager {
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
                 
-                file.chunks.putIfAbsent(chunk.id, chunk.desiredReplicationDegree);
+                file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
 
                 peer.sendPutChunk(chunk, header);
 
@@ -57,7 +57,7 @@ public class FileManager {
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
 
-                file.chunks.putIfAbsent(chunk.id, chunk.desiredReplicationDegree);
+                file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
 
                 peer.sendPutChunk(chunk, header);
             }

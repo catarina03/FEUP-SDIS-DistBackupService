@@ -165,9 +165,9 @@ public class DiskState {
         }
     }
 
-    public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo) {
+    public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo, String fileId) {
 
-        File newFile = new File("../peerFiles/peer" + peerId + "/chunks/" + chunkNo + ".ser");
+        File newFile = new File("../peerFiles/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
 
         FileOutputStream fileOutputStream;
         try {
@@ -206,7 +206,7 @@ public class DiskState {
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
-                result += "\nChunk " + chunkKey + ": " + backupFile.chunks.get(chunkKey);
+                result += "\nChunk " + chunkKey + ": " + backupFile.desiredReplicationDegree;
             }
 
             // ...

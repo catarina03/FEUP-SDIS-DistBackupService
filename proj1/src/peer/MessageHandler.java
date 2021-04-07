@@ -65,7 +65,7 @@ public class MessageHandler {
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                     currentChunkStorageList.add(this.peer.id);
                    
-                    this.peer.storage.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo);
+                    this.peer.storage.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo, newHeader.fileId);
 
                     System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
                     System.out.println(this.peer.storage.chunksReplicationDegree);
