@@ -1,5 +1,10 @@
 package files;
 
+
+import java.io.ObjectStreamException;
+import java.io.IOException;
+
+
 public class BackupChunk extends Chunk{
     //public String version;
     //public int senderId;
@@ -26,5 +31,19 @@ public class BackupChunk extends Chunk{
     public BackupChunk(String id, int size, int desiredReplicationDegree, int currentReplicationDegree, byte[] body) {
         super(id, size, desiredReplicationDegree, currentReplicationDegree, body);
     }
+
+    /*
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException{
+
+    }
+
+    private void readObjectNoData() throws ObjectStreamException{
+        
+    }
+    */
 
 }

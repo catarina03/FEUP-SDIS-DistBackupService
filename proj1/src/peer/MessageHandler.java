@@ -1,7 +1,9 @@
 package peer;
 
 import files.BackupChunk;
+import files.BackupFile;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -13,11 +15,9 @@ public class MessageHandler {
     private Peer peer;
     protected final String doubleCRLF = "\r\n\r\n";
 
-
     public MessageHandler(Peer peer){
         this.peer = peer;
     }
-
 
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
         System.out.println("IN PROCESS");
@@ -37,7 +37,6 @@ public class MessageHandler {
 
         Header newHeader = new Header(headerArray);
 
-
         byte[] body = new byte[0];
         if (messageArray.size() != 1) {
             body = messageArray.get(1).getBytes(StandardCharsets.ISO_8859_1);
@@ -45,7 +44,6 @@ public class MessageHandler {
 
         System.out.println("IN MESSAGE PARSER FROM PEER " + this.peer.id + " - HANDLING " + newHeader.messageType + " FROM " + newHeader.senderId);
   
-
         switch(newHeader.messageType) {
             case "PUTCHUNK":
 
@@ -66,7 +64,8 @@ public class MessageHandler {
                     // UPDATES THE LIST OF CHUNKS' LOCATION
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                     currentChunkStorageList.add(this.peer.id);
-
+                   
+                    this.peer.fileManager.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo);
 
                     System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
                     System.out.println(this.peer.storage.chunksReplicationDegree);
@@ -74,32 +73,21 @@ public class MessageHandler {
                     System.out.println("\nUPDATING CHUNK LOCATION");
                     System.out.println(this.peer.storage.chunksLocation);
 
-                    
                     //StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
                     StoredTask newTask = new StoredTask(this.peer, newHeader, newChunk);
                     newTask.run();
                 }
-
                 break;
 
             case "STORED":
-                // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-                //this.peer.protocol.stored(message);
                 System.out.println("INSIDE SWITCH FOR STORED FROM " + newHeader.senderId);
-                //String chunkId = newHeader.fileId + newHeader.chunkNo;
-
-                //System.out.println("Storage before update: " + this.peer.storage.backedUpChunks.toString());
-
-                //System.out.println("Message received: " + newHeader);
-
-                //System.out.println("ID OF HEADER I JUST CREATED: " + newHeader.senderId);
-                //System.out.println("ID OF CURRENT PEER: " + this.peer.id);
 
                 if (newHeader.senderId != this.peer.id){
                     String chunkId = newHeader.fileId + newHeader.chunkNo;
 
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                     if (!currentChunkStorageList.contains(newHeader.senderId)){
+
                         // INCREASES REPLICATION DEGREE OF STORED CHUNK
                         Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
                         if (currentReplicationDegree != null){
@@ -107,17 +95,18 @@ public class MessageHandler {
                         }
 
                         // UPDATES THE LIST OF CHUNKS' LOCATION
-                        //ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                         currentChunkStorageList.add(newHeader.senderId);
                     }
 
+                    if(this.peer.storage.files.containsKey(newHeader.fileId)){
+                        // INCREASES REPLICATION DEGREE OF BACKED UP CHUNK IN FILE MAP
+                        BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
+                        backedUpFile.updateChunk(chunkId);
 
-
-                    // UPDATES THE LIST OF CHUNKS' LOCATION
-                    //ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
-                    //currentChunkStorageList.add(newHeader.senderId);
-
-
+                        System.out.println("\nUPDATING FILE CHUNK REPLICATION DEGREE");
+                        System.out.println(this.peer.storage.files);
+                        System.out.println(this.peer.storage.files.get(newHeader.fileId).chunks);
+                    }
 
                     System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
                     System.out.println(this.peer.storage.chunksReplicationDegree);
@@ -125,9 +114,6 @@ public class MessageHandler {
                     System.out.println("\nUPDATING CHUNK LOCATION");
                     System.out.println(this.peer.storage.chunksLocation);
                 }
-
-                
-                //System.out.println("Storage after update: " + this.peer.storage.backedUpChunks.toString());
                 break;
 
             case "GETCHUNK":
@@ -169,7 +155,6 @@ public class MessageHandler {
 
         System.out.println("\nIN MESSAGE HANDLER, GOT THIS PACKET: " + packet);
 
-        //Message receivedMessage = null; //?
         try {
             System.out.println("GOING TO PROCESS");
             this.process(packet, address, port);
@@ -177,27 +162,6 @@ public class MessageHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //return;
-
-        // if the message is from the own Peer
-/*
-        if (receivedMessage != null){
-            if(receivedMessage.header.senderId != this.peer.id) {
-                System.out.println("MESSAGE: " + receivedMessage.header.toString() + " PARSED, BEING HANDLED NOW");
-
-                Task newTask = new Task(message)
-                //receivedMessage.action();
-            }
-            else{
-                System.out.println("THIS MESSAGE IS MINE\n");
-            }
-        }
-
- */
-
-
-
 
     }
 }

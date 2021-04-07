@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class BackupFile implements Serializable {
@@ -19,21 +18,21 @@ public class BackupFile implements Serializable {
     public String pathname;
     public String fileId;
     public int desiredReplicationDegree;
-    ConcurrentHashMap<String, Integer> chunks;
+    public ConcurrentHashMap<String, Integer> chunks;
 
     public BackupFile(String pathname, int desiredReplicationDegree) {
         this.pathname = pathname;
         this.fileId = generateFileId(pathname);
         this.desiredReplicationDegree = desiredReplicationDegree;
+        this.chunks = new ConcurrentHashMap<>();
     }
 
-    //TO DO
-    public void addChunk(){
-        String key = "";
-        Integer value = 0;
-        chunks.put(key, value);
+    public void updateChunk(String chunkId){
+        Integer value = chunks.putIfAbsent(chunkId, 1);
+        if (value != null){
+            chunks.replace(chunkId, value + 1);
+        }
     }
-
 
     private String generateFileId(String filePath) {
         String fileId = "";

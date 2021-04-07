@@ -7,9 +7,13 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 public class FileManager {
     public Peer peer;
@@ -31,21 +35,17 @@ public class FileManager {
 
             int chunk_no = 0;
             BackupChunk chunk = new BackupChunk();
-            // ConcurrentHashMap<String, BackupChunk> chunkMap = new ConcurrentHashMap<String, BackupChunk>();
             byte[] buffer = new byte[MAX_SIZE_CHUNK]; // TEM QUE SER MENOS
             
             int size;
             while ((size = stream.read(buffer)) > 0) {
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, 0, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
-                
-                // chunkMap.put(file.fileId + "_" + chunk_no, chunk);
-                
+                  
                 peer.sendPutChunk(chunk, header);
 
                 chunk_no++;
                 buffer = new byte[MAX_SIZE_CHUNK];
-
             }
 
             //check if needs 0 size chunk
@@ -54,17 +54,32 @@ public class FileManager {
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, 0, Arrays.copyOf(buffer, size));
                 Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
                 peer.sendPutChunk(chunk, header);
-
             }
-
-            // return chunkMap;
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // return new ConcurrentHashMap<String, BackupChunk>();
     }
+
+
+
+    public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo) {
+
+        File newFile = new File("peer" + peerId + "/chunks/" + chunkNo + ".ser");
+           
+        FileOutputStream fileOutputStream;
+        try {
+            fileOutputStream = new FileOutputStream(newFile);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(chunk);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
 
     // public void sendPutChunk(){
 
