@@ -10,7 +10,7 @@ import java.net.MulticastSocket;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class BackupTask extends Task{
+public class PutchunkTask extends Task{
 
     //private Peer peer;
     //private PutchunkMessage putchunkMessage;
@@ -35,7 +35,7 @@ public class BackupTask extends Task{
     }
     */
 
-    public BackupTask(Peer peer, Message message) {
+    public PutchunkTask(Peer peer, Message message) {
         super(peer, message);
         this.tries = 0;
 
@@ -73,7 +73,7 @@ public class BackupTask extends Task{
                 socket.send(replyPacket);
 
                 //this.tries++;
-                System.out.println("In PUTCHUNK - Sent packet: " + message.header.toString());
+                //System.out.println("In PUTCHUNK - Sent packet: " + message.header.toString());
                 socket.close();
 
                 if (this.tries < 4){

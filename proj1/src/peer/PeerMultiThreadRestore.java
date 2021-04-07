@@ -52,7 +52,7 @@ public class PeerMultiThreadRestore implements Runnable {
                 String multicastResponseString = new String(multicastPacket.getData());
 
                 // print multicast received message
-                System.out.println("Received-Restore: " + multicastResponseString + '\n');
+                //System.out.println("Received-Restore: " + multicastResponseString + '\n');
 
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 

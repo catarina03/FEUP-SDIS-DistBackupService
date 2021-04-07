@@ -41,7 +41,7 @@ public class FileManager {
             int size;
             while ((size = stream.read(buffer)) > 0) {
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
-                Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
+                Header header = new Header(this.peer.version, "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
                 
                 file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
 
@@ -55,7 +55,7 @@ public class FileManager {
             if(chunk.getSize() == MAX_SIZE_CHUNK) {
                 // If the file size is a multiple of the chunk size, the last chunk has size 0.
                 chunk = new BackupChunk(file.fileId + chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
-                Header header = new Header("1.0", "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
+                Header header = new Header(this.peer.version, "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
 
                 file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
 

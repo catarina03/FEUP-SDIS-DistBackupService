@@ -53,7 +53,7 @@ public class PeerMultiThreadControl implements Runnable {
             while (true) {
                 multicastControlSocket.receive(multicastPacket);
 
-                System.out.println("\nIn thread - Received-Stored");
+                //System.out.println("\nIn thread - Received-Stored");
 
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 

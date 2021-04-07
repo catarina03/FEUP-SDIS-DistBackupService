@@ -5,7 +5,7 @@ import files.BackupFile;
 import files.FileManager;
 import messages.PutchunkMessage;
 import rmi.RemoteInterface;
-import tasks.BackupTask;
+import tasks.PutchunkTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Peer implements RemoteInterface {
 
-    public static String version;
+    public String version;
     public Protocol protocol;
     public int id;
     public DiskState storage;
@@ -38,8 +38,9 @@ public class Peer implements RemoteInterface {
     public String multicastDataRestoreAddress;
     public int multicastDataRestorePort;
 
-    public Peer(int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort, String mdrAddress,
+    public Peer(String version, int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort, String mdrAddress,
             String mdrPort) {
+        this.version = version;
         this.id = id;
 
         this.storage = new DiskState(this.id);
@@ -93,11 +94,11 @@ public class Peer implements RemoteInterface {
             return;
         }
 
-        version = args[0];
+        //version = args[0];
         // protocol = new Protocol(version); // initiate protocol according to version
         String remoteObjName = args[2];
 
-        Peer peer = new Peer(Integer.parseInt(args[1]), args[3], args[4], args[5], args[6], args[7], args[8]);
+        Peer peer = new Peer(args[0], Integer.parseInt(args[1]), args[3], args[4], args[5], args[6], args[7], args[8]);
 
         // TODO: check state and update every few secs to keep storage updated
 
@@ -157,7 +158,7 @@ public class Peer implements RemoteInterface {
 
         PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(),
                 multichannelsbackup.getMulticastPort());
-        BackupTask backupTask = new BackupTask(this, message);
+        PutchunkTask backupTask = new PutchunkTask(this, message);
         backupTask.run();
 
         System.out.println(message.header.toString());

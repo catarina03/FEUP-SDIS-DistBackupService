@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class DiskState {
     // used to manage disk state and get information
     public int peerId;
-    public long maxCapacityAllowed;
+    public long maxCapacityAllowed = 200000;
     public long occupiedSpace;
     public transient String storageFolderName;
 
@@ -27,6 +27,7 @@ public class DiskState {
     public DiskState(int peerId) {
 
         this.peerId = peerId;
+        this.occupiedSpace = 0;
         this.storageFolderName = "peer" + peerId;
 
         // this.files = new ConcurrentHashMap<String, Chunk>();

@@ -20,6 +20,7 @@ public class Header {
         this.replicationDegree = replicationDegree;
     }
 
+    /*
     public Header(String messageType, int senderId, String fileId, int chunkNo, int replicationDegree){
         this.version = "1.0";
         this.messageType = messageType;
@@ -28,6 +29,8 @@ public class Header {
         this.chunkNo = chunkNo;
         this.replicationDegree = replicationDegree;
     }
+
+     */
 
     // STORED HEADER
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo) {

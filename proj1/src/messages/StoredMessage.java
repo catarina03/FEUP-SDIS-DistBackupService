@@ -17,10 +17,16 @@ public class StoredMessage extends Message{
     }
 
     @Override
-    public byte[] convertToBytes() throws IOException {
+    public byte[] convertToBytes() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        stream.write(header.toString().getBytes());
-        stream.write(doubleCRLF.getBytes());
+
+        try {
+            stream.write(header.toString().getBytes());
+            stream.write(doubleCRLF.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return stream.toByteArray();
     }
 

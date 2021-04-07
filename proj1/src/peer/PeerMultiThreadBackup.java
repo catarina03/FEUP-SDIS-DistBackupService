@@ -59,7 +59,7 @@ public class PeerMultiThreadBackup implements Runnable {
             while (true) {
                 multicastBackupSocket.receive(multicastPacket);
 
-                System.out.println("\nIn thread - Received-BackUp");
+                //System.out.println("\nIn thread - Received-BackUp");
 
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 
