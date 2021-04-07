@@ -1,4 +1,4 @@
-package peer;
+package messages;
 
 public class InvalidMessageException extends Exception{
     /**

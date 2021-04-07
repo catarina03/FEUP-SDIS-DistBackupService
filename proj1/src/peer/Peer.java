@@ -1,27 +1,20 @@
 package peer;
 
 import files.BackupChunk;
-import files.Chunk;
 import files.BackupFile;
 import files.FileManager;
+import messages.PutchunkMessage;
 import rmi.RemoteInterface;
+import tasks.BackupTask;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Peer implements RemoteInterface {
 

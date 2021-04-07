@@ -1,6 +1,7 @@
-package peer;
+package messages;
 
 import files.Chunk;
+import peer.Header;
 
 import java.io.IOException;
 import java.io.Serializable;

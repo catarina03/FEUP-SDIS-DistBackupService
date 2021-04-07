@@ -1,4 +1,4 @@
-package peer;
+package tasks;
 
 public class ErrorTask extends Task{
     public ErrorTask() {

@@ -1,7 +1,8 @@
-package peer;
+package messages;
 
 
 import files.Chunk;
+import peer.Header;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

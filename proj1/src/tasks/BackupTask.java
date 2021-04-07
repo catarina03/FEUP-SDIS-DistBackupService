@@ -1,4 +1,7 @@
-package peer;
+package tasks;
+
+import messages.Message;
+import peer.Peer;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

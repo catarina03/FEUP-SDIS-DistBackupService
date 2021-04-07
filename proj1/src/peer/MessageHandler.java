@@ -2,9 +2,9 @@ package peer;
 
 import files.BackupChunk;
 import files.BackupFile;
+import messages.InvalidMessageException;
+import tasks.StoredTask;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class MessageHandler {
     private Peer peer;
     protected final String doubleCRLF = "\r\n\r\n";
+    private final String ENHANCED = "2.0";
 
     public MessageHandler(Peer peer){
         this.peer = peer;

@@ -1,6 +1,9 @@
-package peer;
+package tasks;
 
 import files.BackupChunk;
+import messages.Message;
+import peer.Header;
+import peer.Peer;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 

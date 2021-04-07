@@ -1,4 +1,4 @@
-package peer;
+package messages;
 
 import java.io.IOException;
 
