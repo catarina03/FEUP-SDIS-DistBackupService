@@ -47,13 +47,16 @@ public class MessageHandler {
         switch(newHeader.messageType) {
             case "PUTCHUNK":
 
-                if (newHeader.senderId != this.peer.id){
+                if (newHeader.senderId != this.peer.id && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed){
                     System.out.println("INSIDE SWITCH FOR PUTCHUNK FROM " + newHeader.senderId);
                     String chunkId = newHeader.fileId + newHeader.chunkNo;
                     BackupChunk newChunk = new BackupChunk(chunkId, body.length, newHeader.replicationDegree, body);
 
                     // STORES CHUNK
                     this.peer.storage.backedUpChunks.putIfAbsent(chunkId, newChunk);
+
+                    //DECREASES PEER STORAGE SPACE
+                    this.peer.storage.occupiedSpace -= body.length;
 
                     // INCREASES REPLICATION DEGREE OF STORED CHUNK
                     Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
@@ -64,7 +67,8 @@ public class MessageHandler {
                     // UPDATES THE LIST OF CHUNKS' LOCATION
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
                     currentChunkStorageList.add(this.peer.id);
-                   
+
+                    // SAVES CHUNK TO FILE DIRECTORY
                     this.peer.storage.saveChunkToDirectory(newChunk, this.peer.id, newHeader.chunkNo, newHeader.fileId);
 
                     System.out.println("\nUPDATING CHUNK REPLICATION DEGREE");
@@ -73,7 +77,7 @@ public class MessageHandler {
                     System.out.println("\nUPDATING CHUNK LOCATION");
                     System.out.println(this.peer.storage.chunksLocation);
 
-                    //StoredTask newTask = new StoredTask(this.peer, new PutchunkMessage(newHeader, newChunk, address, port));
+                    // CREATES TASK THAT SENDS STORED MESSAGES
                     StoredTask newTask = new StoredTask(this.peer, newHeader, newChunk);
                     newTask.run();
                 }

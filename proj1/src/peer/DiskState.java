@@ -3,12 +3,7 @@ package peer;
 import files.BackupChunk;
 import files.BackupFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -69,7 +64,12 @@ public class DiskState {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e instanceof FileNotFoundException){
+                System.out.println("Creating files directory for peer " + peerId + "...");
+            }
+            else {
+                e.printStackTrace();
+            }
         }
 
         System.out.println("FILE MAP AFTER RECOVER STATE");
@@ -93,12 +93,17 @@ public class DiskState {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e instanceof FileNotFoundException){
+                System.out.println("Creating chunks directory for peer " + peerId + "...");
+            }
+            else {
+                e.printStackTrace();
+            }
         }
 
         try {
             FileInputStream fileInputStream = new FileInputStream(
-                    new File("../peerFiles/peer" + peerId + "/chunksReplicationDegree.ser"));
+                    "../peerFiles/peer" + peerId + "/chunksReplicationDegree.ser");
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             this.chunksReplicationDegree = (ConcurrentHashMap<String, Integer>) objectInputStream.readObject();
             objectInputStream.close();
@@ -108,7 +113,7 @@ public class DiskState {
 
         try {
             FileInputStream fileInputStream = new FileInputStream(
-                    new File("../peerFiles/peer" + peerId + "/chunksLocation.ser"));
+                    "../peerFiles/peer" + peerId + "/chunksLocation.ser");
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             this.chunksLocation = (ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>>) objectInputStream
                     .readObject();
@@ -198,11 +203,11 @@ public class DiskState {
          * in KBytes) used to backup the chunks.
          */
 
-        result = "----------FILES INFO----------\n";
+        result = "\n---------- " + "FILES OF PEER " + this.peerId + " ----------\n";
         for (String key : this.files.keySet()) {
             BackupFile backupFile = this.files.get(key);
             result += "\nPathname: " + backupFile.pathname;
-            result += "\nFile ID: " + backupFile.fileId;
+            result += "\nID: " + backupFile.fileId;
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
@@ -210,6 +215,26 @@ public class DiskState {
             }
 
             // ...
+        }
+
+        result += "\n\n---------- BACKED UP CHUNKS OF PEER " + this.peerId + " ----------\n\n";
+        for (String key : this.backedUpChunks.keySet()){
+            BackupChunk backupChunk = this.backedUpChunks.get(key);
+
+            // LOOK 1 - mais compacto
+            /*
+            result += "ID: " + backupChunk.id +
+                        " | Size: " + backupChunk.getSize() +
+                        " | Desired Replication Degree: " + backupChunk.getDesiredReplicationDegree() +
+                        " | Perceived replication degree: " + this.chunksReplicationDegree.get(key) + "\n";
+
+             */
+
+            //LOOK 2 - mais disperso
+            result += "\nID: " + backupChunk.id;
+            result += "\nSize: " + backupChunk.getSize();
+            result += "\nDesired Replication Degree: " + backupChunk.getDesiredReplicationDegree();
+            result += "\nPerceived replication degree: " + this.chunksReplicationDegree.get(key) + "\n";
         }
         return result;
     }
