@@ -15,7 +15,16 @@ fi
 
 # execute peer in new terminal
 cd classDir
-java TestApp "$1" "$2" "$3" "$4" 
+
+if [ "$#" -eq 2 ]; then
+java TestApp "$1" "$2"
+fi
+
+if [ "$#" -eq 4 ]; then
+java TestApp "$1" "$2" "$3" "$4"
+fi
+
+
 
 # java TestApp Peer1 BACKUP ../arder.jpg 2
 # ./test.sh Peer1 BACKUP ../arder.jpg 2
