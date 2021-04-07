@@ -219,7 +219,7 @@ public class Peer implements RemoteInterface {
 
         PutchunkMessage message = new PutchunkMessage(header, chunk,
                 multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
-        BackupTask backupTask = new BackupTask(message);
+        BackupTask backupTask = new BackupTask(this, message);
         backupTask.run();
 
         System.out.println(message.header.toString());

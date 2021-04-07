@@ -6,6 +6,7 @@ import files.BackupFile;
 
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DiskState {
     //used to manage disk state and get information
@@ -18,14 +19,19 @@ public class DiskState {
     public ConcurrentHashMap<String,BackupChunk> backedUpChunks; //Other's chunks that this peer stored
     public ConcurrentHashMap<String, BackupFile> files; // Other's chunks that this peer stored
 
+    public ConcurrentHashMap<String, Integer> sentChunksReplicationDegree; // This saves the replication degree for each chunk I sent
+    public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer> >sentChunksLocation; // This saves the peers where a certain sent chunk is
+
     public DiskState(int peerId) {
 
         this.peerId=peerId;
         this.storageFolderName="peer" + peerId;
 
         //this.files = new ConcurrentHashMap<String, Chunk>();
-        this.backedUpChunks = new ConcurrentHashMap<String, BackupChunk>();
-        this.files = new ConcurrentHashMap<String, BackupFile>();
+        this.backedUpChunks = new ConcurrentHashMap<>();
+        this.files = new ConcurrentHashMap<>();
+        this.sentChunksReplicationDegree = new ConcurrentHashMap<>();
+        this.sentChunksLocation = new ConcurrentHashMap<>();
 
         new File("peer" + peerId + "/chunks").mkdirs();
         new File("peer" + peerId + "/files").mkdirs();

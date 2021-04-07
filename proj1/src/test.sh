@@ -17,4 +17,5 @@ fi
 cd classDir
 java TestApp "$1" "$2" "$3" "$4" 
 
-# java TestApp Hello Peer1 ../arder.jpg 2
+# java TestApp Peer1 BACKUP ../arder.jpg 2
+# ./test.sh Peer1 BACKUP ../arder.jpg 2

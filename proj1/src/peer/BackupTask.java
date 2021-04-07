@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class BackupTask extends Task{
 
@@ -13,6 +15,9 @@ public class BackupTask extends Task{
     //private BackupChunk chunk;
     //private String address;
     //private int port;
+    private final int NUMBER_OF_WORKERS = 5;
+    private int time = 1;
+    protected ScheduledThreadPoolExecutor scheduler;
     private int tries;
 
 /*
@@ -28,9 +33,11 @@ public class BackupTask extends Task{
     }
     */
 
-    public BackupTask(Message message) {
-        super(message);
+    public BackupTask(Peer peer, Message message) {
+        super(peer, message);
         this.tries = 0;
+
+        this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
     public void run(){
@@ -48,8 +55,11 @@ public class BackupTask extends Task{
             //StoredMessage storedMessage = new StoredMessage(storedHeader, this.peer.multicastControlAddress, this.peer.multicastControlPort);
 
             byte[] messageInBytes = this.message.convertToBytes();
+            String chunkId = message.header.fileId + message.header.chunkNo;
 
-            if (this.tries < 5){
+            this.peer.storage.sentChunksReplicationDegree.putIfAbsent(chunkId, 0);
+
+            if (this.peer.storage.sentChunksReplicationDegree.get(chunkId) < message.header.replicationDegree){
                 MulticastSocket socket = new MulticastSocket(this.message.port);
                 socket.setTimeToLive(1);
                 socket.joinGroup(InetAddress.getByName(this.message.address));
@@ -60,8 +70,16 @@ public class BackupTask extends Task{
                 DatagramPacket replyPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.message.address), this.message.port);
                 socket.send(replyPacket);
 
+                //this.tries++;
                 System.out.println("In PUTCHUNK - Sent packet: " + message.header.toString());
                 socket.close();
+
+                if (this.tries < 4){
+                    scheduler.schedule(this, (long) Math.pow(2, this.tries), TimeUnit.SECONDS);
+                }
+
+                this.tries++;
+
             }
 
 
@@ -99,7 +117,7 @@ public class BackupTask extends Task{
 
 
 
-            this.tries++;
+            //this.tries++;
 
         } catch (IOException e) {
             e.printStackTrace();
