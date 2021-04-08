@@ -80,40 +80,28 @@ public class MessageHandler {
 
             case "GETCHUNK":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-                //this.peer.protocol.getChunk(message);
-
                 System.out.println("getChunk");
                 break;
             case "CHUNK":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-                //this.peer.protocol.receiveChunk(message);
                 System.out.println("chunk");
                 break;
             case "DELETE":
-                System.out.println("File to be removed: " + newHeader.fileId);
-                System.out.println("Files storage: " + this.peer.storage.files);
-
-
-
                 // delete file
                 this.peer.storage.files.remove(newHeader.fileId);
 
                 // delete chunks and their references
                 for (int i = 0; i < 10; i++){
                     String chunkId = newHeader.fileId + i;
-                    System.out.println("Id of chunk to be deleted: " + chunkId);
 
-                    System.out.println("BackedupChunks storage: " + this.peer.storage.backedUpChunks);
                     if (this.peer.storage.backedUpChunks.containsKey(chunkId)){
                         this.peer.storage.backedUpChunks.remove(chunkId);
                     }
 
-                    System.out.println("chunksReplicationDegree storage: " + this.peer.storage.chunksReplicationDegree);
                     if (this.peer.storage.chunksReplicationDegree.containsKey(chunkId)){
                         this.peer.storage.chunksReplicationDegree.remove(chunkId);
                     }
 
-                    System.out.println("chunksLOcation storage: " + this.peer.storage.chunksLocation);
                     if (this.peer.storage.chunksLocation.containsKey(chunkId)){
                         this.peer.storage.chunksLocation.remove(chunkId);
                     }
@@ -123,7 +111,6 @@ public class MessageHandler {
                 
             case "REMOVED":
                 // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-                //this.peer.protocol.removed(message);
                 System.out.println("remove");
                 break;
             

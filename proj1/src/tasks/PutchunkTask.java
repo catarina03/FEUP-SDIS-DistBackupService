@@ -43,13 +43,10 @@ public class PutchunkTask extends Task{
                 if (this.tries < 4){
                     scheduler.schedule(this, (long) Math.pow(2, this.tries), TimeUnit.SECONDS);
                 }
-
                 this.tries++;
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

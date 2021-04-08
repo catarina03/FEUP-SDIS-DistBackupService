@@ -47,11 +47,8 @@ public class DeleteTask extends Task {
             }
 
             this.tries++;
-        
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

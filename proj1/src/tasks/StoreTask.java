@@ -23,13 +23,11 @@ public class StoreTask extends Task{
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
-
-
     private void backupAndAcknowledge(){
         // STORES CHUNK
         this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
 
-        //DECREASES PEER STORAGE SPACE
+        // DECREASES PEER STORAGE SPACE
         this.peer.storage.occupiedSpace -= this.chunk.body.length;
 
         // INCREASES REPLICATION DEGREE OF STORED CHUNK
@@ -43,7 +41,7 @@ public class StoreTask extends Task{
         currentChunkStorageList.add(this.peer.id);
 
         // SAVES CHUNK TO FILE DIRECTORY
-        this.peer.storage.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
+        this.peer.fileManager.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
 
         // BUILDING STORED MESSAGE
         Header storedHeader = new Header(this.peer.version, "STORED", this.peer.id, this.header.fileId, this.header.chunkNo);
@@ -56,8 +54,6 @@ public class StoreTask extends Task{
         int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-400
         scheduler.schedule( () -> sendStorageMessage(messageInBytes), randomDelay, TimeUnit.MILLISECONDS);
     }
-
-
 
     private void backupAndAcknowledgeEnhanced(){
         if (this.peer.storage.chunksReplicationDegree.get(chunk.id)  == null ||
@@ -80,7 +76,7 @@ public class StoreTask extends Task{
             currentChunkStorageList.add(this.peer.id);
 
             // SAVES CHUNK TO FILE DIRECTORY
-            this.peer.storage.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
+            this.peer.fileManager.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
 
             // BUILDING STORED MESSAGE AND SENDING IT
             Header storedHeader = new Header(this.peer.version, "STORED", this.peer.id, this.header.fileId, this.header.chunkNo);
@@ -89,8 +85,6 @@ public class StoreTask extends Task{
             sendStorageMessage(messageInBytes);
         }
     }
-
-
 
     public void run(){
         if (this.peer.version.equals(this.ENHANCED) && this.header.version.equals(this.ENHANCED)){
@@ -108,8 +102,6 @@ public class StoreTask extends Task{
         }
     }
 
-
-
     private void sendStorageMessage(byte[] messageInBytes){
         MulticastSocket socket = null;
         try {
@@ -125,9 +117,5 @@ public class StoreTask extends Task{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
-
-
 }

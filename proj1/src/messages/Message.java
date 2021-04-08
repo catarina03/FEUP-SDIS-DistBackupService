@@ -15,18 +15,9 @@ public abstract class Message implements Serializable {
     
     public Header header;
     public Chunk body;
-    //public String type = "NONE";
     protected final String doubleCRLF = "\r\n\r\n";
     public String address;
     public int port;
-
-    /*
-    public Message(String header, String body, String address, int port){
-        this.type = "PUTCHUNK";
-        this.address = address;
-        this.port = port;
-    };
-    */
 
     public Message(Header header, Chunk body, String address, int port){
         this.header = header;
@@ -41,20 +32,11 @@ public abstract class Message implements Serializable {
         this.port = port;
     }
 
-    public Message(){
-        
-    }
-
-    /*
-    abstract public String getHeader();
-    abstract public void action(String message);
-    */
-
+    public Message(){}
 
     public Header getHeader(){
         return this.header;
     };
 
     public abstract byte[] convertToBytes() throws IOException;
-    
 }
