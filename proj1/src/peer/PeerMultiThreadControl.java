@@ -1,6 +1,5 @@
 package peer;
 
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -14,18 +13,14 @@ public class PeerMultiThreadControl implements Runnable {
     private Peer peer;
     private String multicastAddress;
     private int multicastPort;
-    //private DatagramPacket packet;
     private MulticastSocket multicastControlSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
-    //private final int BUFFER_SIZE = 64000;
     private final int BUFFER_SIZE = 64000;
 
-    public PeerMultiThreadControl(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads)
-            throws IOException {
+    public PeerMultiThreadControl(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
         this.peer = peer;
-        //this.peerID = peer.id;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
         this.messageHandler = new MessageHandler(peer);
@@ -35,16 +30,10 @@ public class PeerMultiThreadControl implements Runnable {
         this.multicastControlSocket = new MulticastSocket(multicastPort);
         this.multicastControlSocket.joinGroup(group);
 
-        // create service message & datagramPacket
-        //String announcement = peerID + " ";
-        //byte[] buf = announcement.getBytes();
-        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
-
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
-    
     public String getMulticastAddress() {
         return multicastAddress;
     }
@@ -62,8 +51,6 @@ public class PeerMultiThreadControl implements Runnable {
             while (true) {
                 multicastControlSocket.receive(multicastPacket);
 
-                //System.out.println("\nIn thread - Received-Stored");
-
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 
                 this.handleMessage(copy, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
@@ -74,8 +61,6 @@ public class PeerMultiThreadControl implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
@@ -84,5 +69,4 @@ public class PeerMultiThreadControl implements Runnable {
 
         this.workerService.execute(processMessage);
     }
-
 }

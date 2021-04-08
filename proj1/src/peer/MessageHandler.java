@@ -27,7 +27,7 @@ public class MessageHandler {
         String headerAsString = messageArray.get(0);
         ArrayList<String> headerArray = new ArrayList<>(Arrays.asList(headerAsString.split(" ", 6)));
 
-        if (headerArray.size() < 5){
+        if (headerArray.size() < 4){
             throw new InvalidMessageException("Invalid Header");
         }
 
@@ -90,6 +90,10 @@ public class MessageHandler {
                 System.out.println("chunk");
                 break;
             case "DELETE":
+                System.out.println("File to be removed: " + newHeader.fileId);
+                System.out.println("Files storage: " + this.peer.storage.files);
+
+
 
                 // delete file
                 this.peer.storage.files.remove(newHeader.fileId);
@@ -97,20 +101,24 @@ public class MessageHandler {
                 // delete chunks and their references
                 for (int i = 0; i < 10; i++){
                     String chunkId = newHeader.fileId + i;
+                    System.out.println("Id of chunk to be deleted: " + chunkId);
+
+                    System.out.println("BackedupChunks storage: " + this.peer.storage.backedUpChunks);
                     if (this.peer.storage.backedUpChunks.containsKey(chunkId)){
                         this.peer.storage.backedUpChunks.remove(chunkId);
                     }
 
+                    System.out.println("chunksReplicationDegree storage: " + this.peer.storage.chunksReplicationDegree);
                     if (this.peer.storage.chunksReplicationDegree.containsKey(chunkId)){
                         this.peer.storage.chunksReplicationDegree.remove(chunkId);
                     }
 
+                    System.out.println("chunksLOcation storage: " + this.peer.storage.chunksLocation);
                     if (this.peer.storage.chunksLocation.containsKey(chunkId)){
                         this.peer.storage.chunksLocation.remove(chunkId);
                     }
                 }
-                
-                System.out.println("Delete");
+
                 break;
                 
             case "REMOVED":
@@ -129,16 +137,10 @@ public class MessageHandler {
     }
 
     public void handle(byte[] packet, String address, int port) {
-
-        //System.out.println("\nIN MESSAGE HANDLER, GOT THIS PACKET: " + packet);
-
         try {
-            //System.out.println("GOING TO PROCESS");
             this.process(packet, address, port);
-            //System.out.println("FINISHED PARSING MESSAGE\n");
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

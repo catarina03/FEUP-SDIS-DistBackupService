@@ -25,8 +25,6 @@ public class FileManager {
         //this.maximumStorage = 10000;
         //this.availableSpace = this.maximumStorage;
 
-
-
     }
 
     
@@ -66,40 +64,4 @@ public class FileManager {
         }
     }
 
-
- 
-
-
-    // public void sendPutChunk(){
-
-    //     PutchunkMessage message = new PutchunkMessage(header, chunkMap.get(chunk_name),
-    //             multichannelsbackup.getMulticastAddress(), multichannelsbackup.getMulticastPort());
-    //     BackupTask backupTask = new BackupTask(message);
-    //     backupTask.run();
-
-    //     System.out.println(message.header.toString());
-    // }
-     
-
-    // private String generateFileId(String filePath) {
-    //     String hashMetadata = "";
-
-    //     try {
-    //         BasicFileAttributes fileMetadata = Files.readAttributes(Path.of(filePath), BasicFileAttributes.class);
-    //         String fileOwner = Files.getOwner(Path.of(filePath)).toString();
-    //         hashMetadata = filePath + fileMetadata.creationTime() + fileMetadata.lastModifiedTime() + fileOwner;
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //     }
-
-    //     return hashMetadata;
-    // }
-
-/*
-    public void createDirectory(String directory_name){
-        if(!directory.exists){
-            
-        }
-    }
-    */
 }

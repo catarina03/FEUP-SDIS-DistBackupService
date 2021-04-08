@@ -21,7 +21,6 @@ import java.rmi.server.UnicastRemoteObject;
 public class Peer implements RemoteInterface {
 
     public String version;
-    public Protocol protocol;
     public int id;
     public DiskState storage;
     public FileManager fileManager;
@@ -162,8 +161,6 @@ public class Peer implements RemoteInterface {
                 multichannelsbackup.getMulticastPort());
         PutchunkTask backupTask = new PutchunkTask(this, message);
         backupTask.run();
-
-        System.out.println(message.header.toString());
     }
 
     @Override
@@ -181,6 +178,8 @@ public class Peer implements RemoteInterface {
         }
         
         BackupFile systemFile = new BackupFile(pathname, 0);
+        Header header = new Header(this.version, "DELETE", this.id, systemFile.fileId);
+        sendDelete(header);
         
         return result;
     }

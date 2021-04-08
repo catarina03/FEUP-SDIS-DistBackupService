@@ -60,11 +60,8 @@ public class StoreTask extends Task{
 
 
     private void backupAndAcknowledgeEnhanced(){
-        System.out.println("IN ENHANCED BACKUP FUNCTION");
-        System.out.println("Current rep degree: " + this.peer.storage.chunksReplicationDegree.get(chunk.id) + " Ideal rep degree: " + this.header.replicationDegree);
         if (this.peer.storage.chunksReplicationDegree.get(chunk.id)  == null ||
                 this.peer.storage.chunksReplicationDegree.get(chunk.id) < this.header.replicationDegree){
-            System.out.println("REPLICATION DEGREE NOT YET REACHED");
 
             // STORES CHUNK
             this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
@@ -97,8 +94,6 @@ public class StoreTask extends Task{
 
     public void run(){
         if (this.peer.version.equals(this.ENHANCED) && this.header.version.equals(this.ENHANCED)){
-            System.out.println("ENHANCED BACKUP");
-
             // ENHANCED VERSION
             Random rand = new Random();
             int upperbound = 401;
@@ -108,8 +103,6 @@ public class StoreTask extends Task{
             scheduler.schedule(this::backupAndAcknowledgeEnhanced, randomDelay, TimeUnit.MILLISECONDS);
         }
         else {
-            System.out.println("BACKUP SIMPLE");
-
             // SIMPLE VERSION
             backupAndAcknowledge();
         }

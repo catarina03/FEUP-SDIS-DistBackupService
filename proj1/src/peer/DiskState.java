@@ -50,7 +50,7 @@ public class DiskState {
     // public void prepareBackUp
 
     public void recoverState() {
-        // PERCORRER FILES
+        // iterate files
 
         try {
             File dir = new File("../peerFiles/peer" + peerId + "/files");
@@ -73,9 +73,6 @@ public class DiskState {
             }
         }
 
-        System.out.println("FILE MAP AFTER RECOVER STATE");
-        System.out.println(this.files);
-
         try {
             File dir = new File("../peerFiles/peer" + peerId + "/chunks");
             File[] directoryListing = dir.listFiles();
@@ -84,10 +81,6 @@ public class DiskState {
                     FileInputStream fileInputStream = new FileInputStream(f);
                     ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
                     BackupChunk backupChunk = (BackupChunk) objectInputStream.readObject();
-
-                    System.out.println("BACKUP CHUNK");
-                    System.out.println(backupChunk.id);
-                    System.out.println(backupChunk);
 
                     this.backedUpChunks.putIfAbsent(backupChunk.id, backupChunk);
                     objectInputStream.close();

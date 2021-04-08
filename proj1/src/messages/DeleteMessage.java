@@ -29,8 +29,4 @@ public class DeleteMessage extends Message {
         return stream.toByteArray();
     }
 
-    @Override
-    public void action() {
-
-    }
 }

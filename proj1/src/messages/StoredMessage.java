@@ -30,8 +30,4 @@ public class StoredMessage extends Message{
         return stream.toByteArray();
     }
 
-    @Override
-    public void action() {
-
-    }
 }

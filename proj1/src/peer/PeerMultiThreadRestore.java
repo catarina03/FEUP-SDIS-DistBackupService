@@ -32,11 +32,6 @@ public class PeerMultiThreadRestore implements Runnable {
         this.multicastRestoreSocket = new MulticastSocket(multicastPort);
         this.multicastRestoreSocket.joinGroup(group);
 
-        // create service message & datagramPacket
-        //String announcement = peerID + " ";
-        //byte[] buf = announcement.getBytes();
-        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
-
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
@@ -65,7 +60,6 @@ public class PeerMultiThreadRestore implements Runnable {
             e.printStackTrace();
             // TODO: handle exception
         }
-
     }
 
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
@@ -74,5 +68,4 @@ public class PeerMultiThreadRestore implements Runnable {
 
         this.workerService.execute(processMessage);
     }
-
 }

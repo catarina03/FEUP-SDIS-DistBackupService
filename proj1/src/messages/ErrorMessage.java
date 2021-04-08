@@ -14,10 +14,6 @@ public class ErrorMessage extends Message {
 
 
 
-    public void action(){
-        
-    }
-
     @Override
     public byte[] convertToBytes() throws IOException {
         return new byte[0];

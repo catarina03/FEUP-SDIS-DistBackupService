@@ -56,7 +56,5 @@ public abstract class Message implements Serializable {
     };
 
     public abstract byte[] convertToBytes() throws IOException;
-
-    public abstract void action();
     
 }
