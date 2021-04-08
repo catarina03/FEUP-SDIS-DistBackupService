@@ -4,8 +4,10 @@ import files.BackupChunk;
 import files.BackupFile;
 import files.FileManager;
 import messages.PutchunkMessage;
+import messages.DeleteMessage;
 import rmi.RemoteInterface;
 import tasks.PutchunkTask;
+import tasks.DeleteTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -166,12 +168,33 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String delete(String pathname) {
-
         String result = "Peer id-" + this.id + ": received DELETE request.";
 
-        return result;
+        // check path errors
+        if (pathname.isEmpty()) {
+            throw new IllegalArgumentException("Empty file path.");
+        }
 
+        File file = new File(pathname);
+        if (!file.exists()) {
+            throw new IllegalArgumentException("Empty file path.");
+        }
+        
+        BackupFile systemFile = new BackupFile(pathname, 0);
+        
+        return result;
     }
+
+
+    public void sendDelete(Header header) {
+
+        DeleteMessage message = new DeleteMessage(header, multichannelscontrol.getMulticastAddress(), multichannelscontrol.getMulticastPort());
+        DeleteTask deleteTask = new DeleteTask(this, message);
+        deleteTask.run();
+
+        System.out.println(message.header.toString());
+    }
+
 
     @Override
     public String restore(String pathname) {

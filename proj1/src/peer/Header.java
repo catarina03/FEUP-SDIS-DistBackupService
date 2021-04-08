@@ -20,18 +20,6 @@ public class Header {
         this.replicationDegree = replicationDegree;
     }
 
-    /*
-    public Header(String messageType, int senderId, String fileId, int chunkNo, int replicationDegree){
-        this.version = "1.0";
-        this.messageType = messageType;
-        this.senderId = senderId;
-        this.fileId = fileId;
-        this.chunkNo = chunkNo;
-        this.replicationDegree = replicationDegree;
-    }
-
-     */
-
     // STORED HEADER
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo) {
         this.version = version;
@@ -39,6 +27,14 @@ public class Header {
         this.senderId = senderId;
         this.fileId = fileId;
         this.chunkNo = chunkNo;
+    }
+
+    //DELETE Header 
+    public Header(String version, String messageType, int senderId, String fileId) {
+        this.version = version;
+        this.messageType = messageType;
+        this.senderId = senderId;
+        this.fileId = fileId;
     }
 
     public Header(ArrayList<String> array){
@@ -60,9 +56,15 @@ public class Header {
             this.fileId = array.get(3).trim();
             this.chunkNo = Integer.parseInt(array.get(4).trim());
         }
+
+        //Header DELETE
+        if (array.size() == 4){
+            this.version = array.get(0).trim();
+            this.messageType = array.get(1).trim();
+            this.senderId = Integer.parseInt(array.get(2).trim());
+            this.fileId = array.get(3).trim();
+        }
     }
-
-
 
     public void setVersion(String version) {
         this.version = version;
@@ -73,9 +75,11 @@ public class Header {
         if (messageType.equals("PUTCHUNK")){
             return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " " + replicationDegree;
         }
-        //if (messageType == "STORED"){
+        if (messageType == "STORED"){
             return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo;
-        //}
+        }
+        
+        return version + " " + messageType + " " + senderId + " " + fileId;
     }
 
     public int getSizeInBytes(){
