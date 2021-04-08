@@ -24,6 +24,10 @@ if [ "$#" -eq 4 ]; then
 java TestApp "$1" "$2" "$3" "$4"
 fi
 
+if [ "$#" -eq 3 ]; then
+java TestApp "$1" "$2" "$3" 
+fi
+
 
 
 # java TestApp Peer1 BACKUP ../arder.jpg 2
