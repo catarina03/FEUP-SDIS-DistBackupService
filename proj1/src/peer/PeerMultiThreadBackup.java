@@ -1,6 +1,5 @@
 package peer;
 
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -14,12 +13,10 @@ public class PeerMultiThreadBackup implements Runnable {
     private Peer peer;
     private String multicastAddress;
     private int multicastPort;
-    // private DatagramPacket packet;
     private MulticastSocket multicastBackupSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
     private final int BUFFER_SIZE = 64000;
-    //private final int BUFFER_SIZE = 5000;
 
     public PeerMultiThreadBackup(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
@@ -32,11 +29,6 @@ public class PeerMultiThreadBackup implements Runnable {
         InetAddress group = InetAddress.getByName(multicastAddress);
         this.multicastBackupSocket = new MulticastSocket(multicastPort);
         this.multicastBackupSocket.joinGroup(group);
-
-        // create service message & datagramPacket
-        //String announcement = peerID + " ";
-        //byte[] buf = announcement.getBytes();
-        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
 
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
@@ -59,8 +51,6 @@ public class PeerMultiThreadBackup implements Runnable {
             while (true) {
                 multicastBackupSocket.receive(multicastPacket);
 
-                //System.out.println("\nIn thread - Received-BackUp");
-
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 
                 this.handleMessage(copy, multicastPacket.getAddress().getHostAddress(), multicastPacket.getPort());
@@ -80,6 +70,4 @@ public class PeerMultiThreadBackup implements Runnable {
 
         this.workerService.execute(processMessage);
     }
-
-
 }

@@ -23,13 +23,11 @@ public class StoreTask extends Task{
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
-
-
     private void backupAndAcknowledge(){
         // STORES CHUNK
         this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
 
-        //DECREASES PEER STORAGE SPACE
+        // DECREASES PEER STORAGE SPACE
         this.peer.storage.occupiedSpace -= this.chunk.body.length;
 
         // INCREASES REPLICATION DEGREE OF STORED CHUNK
@@ -43,7 +41,7 @@ public class StoreTask extends Task{
         currentChunkStorageList.add(this.peer.id);
 
         // SAVES CHUNK TO FILE DIRECTORY
-        this.peer.storage.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
+        this.peer.fileManager.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
 
         // BUILDING STORED MESSAGE
         Header storedHeader = new Header(this.peer.version, "STORED", this.peer.id, this.header.fileId, this.header.chunkNo);
@@ -57,14 +55,9 @@ public class StoreTask extends Task{
         scheduler.schedule( () -> sendStorageMessage(messageInBytes), randomDelay, TimeUnit.MILLISECONDS);
     }
 
-
-
     private void backupAndAcknowledgeEnhanced(){
-        System.out.println("IN ENHANCED BACKUP FUNCTION");
-        System.out.println("Current rep degree: " + this.peer.storage.chunksReplicationDegree.get(chunk.id) + " Ideal rep degree: " + this.header.replicationDegree);
         if (this.peer.storage.chunksReplicationDegree.get(chunk.id)  == null ||
                 this.peer.storage.chunksReplicationDegree.get(chunk.id) < this.header.replicationDegree){
-            System.out.println("REPLICATION DEGREE NOT YET REACHED");
 
             // STORES CHUNK
             this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
@@ -83,7 +76,7 @@ public class StoreTask extends Task{
             currentChunkStorageList.add(this.peer.id);
 
             // SAVES CHUNK TO FILE DIRECTORY
-            this.peer.storage.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
+            this.peer.fileManager.saveChunkToDirectory(this.chunk, this.peer.id, this.header.chunkNo, this.header.fileId);
 
             // BUILDING STORED MESSAGE AND SENDING IT
             Header storedHeader = new Header(this.peer.version, "STORED", this.peer.id, this.header.fileId, this.header.chunkNo);
@@ -93,12 +86,8 @@ public class StoreTask extends Task{
         }
     }
 
-
-
     public void run(){
         if (this.peer.version.equals(this.ENHANCED) && this.header.version.equals(this.ENHANCED)){
-            System.out.println("ENHANCED BACKUP");
-
             // ENHANCED VERSION
             Random rand = new Random();
             int upperbound = 401;
@@ -108,14 +97,10 @@ public class StoreTask extends Task{
             scheduler.schedule(this::backupAndAcknowledgeEnhanced, randomDelay, TimeUnit.MILLISECONDS);
         }
         else {
-            System.out.println("BACKUP SIMPLE");
-
             // SIMPLE VERSION
             backupAndAcknowledge();
         }
     }
-
-
 
     private void sendStorageMessage(byte[] messageInBytes){
         MulticastSocket socket = null;
@@ -132,9 +117,5 @@ public class StoreTask extends Task{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
-
-
 }

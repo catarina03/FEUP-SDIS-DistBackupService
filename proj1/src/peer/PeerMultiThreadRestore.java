@@ -13,7 +13,6 @@ public class PeerMultiThreadRestore implements Runnable {
     private Peer peer;
     private String multicastAddress;
     private int multicastPort;
-    private DatagramPacket packet;
     private MulticastSocket multicastRestoreSocket;
     private ExecutorService workerService;
     private MessageHandler messageHandler;
@@ -32,14 +31,20 @@ public class PeerMultiThreadRestore implements Runnable {
         this.multicastRestoreSocket = new MulticastSocket(multicastPort);
         this.multicastRestoreSocket.joinGroup(group);
 
-        // create service message & datagramPacket
-        //String announcement = peerID + " ";
-        //byte[] buf = announcement.getBytes();
-        //this.packet = new DatagramPacket(buf, buf.length, group, Integer.parseInt(multicastPort));
-
         // start worker service
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
+
+
+    public String getMulticastAddress() {
+        return multicastAddress;
+    }
+
+
+    public int getMulticastPort() {
+        return multicastPort;
+    }
+
 
     public void run() {
 
@@ -49,10 +54,6 @@ public class PeerMultiThreadRestore implements Runnable {
             DatagramPacket multicastPacket = new DatagramPacket(mbuf, mbuf.length);
             while (true) {
                 multicastRestoreSocket.receive(multicastPacket);
-                String multicastResponseString = new String(multicastPacket.getData());
-
-                // print multicast received message
-                //System.out.println("Received-Restore: " + multicastResponseString + '\n');
 
                 byte[] copy = Arrays.copyOf(multicastPacket.getData(), multicastPacket.getLength());
 
@@ -63,9 +64,7 @@ public class PeerMultiThreadRestore implements Runnable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: handle exception
         }
-
     }
 
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
@@ -74,5 +73,4 @@ public class PeerMultiThreadRestore implements Runnable {
 
         this.workerService.execute(processMessage);
     }
-
 }

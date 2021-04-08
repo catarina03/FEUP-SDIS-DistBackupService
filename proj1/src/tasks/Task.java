@@ -26,8 +26,6 @@ public abstract class Task implements Runnable{
         this.chunk = chunk;
     }
 
-
-
     public Task(Peer peer, Message message) {
         this.peer = peer;
         this.message = message;
@@ -35,6 +33,4 @@ public abstract class Task implements Runnable{
     }
 
     public Task(){}
-
-
 }
