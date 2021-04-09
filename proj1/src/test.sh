@@ -14,7 +14,7 @@ if [ "$#" -gt 4 ]; then
 fi
 
 # execute peer in new terminal
-cd classDir
+cd build
 
 if [ "$#" -eq 2 ]; then
 java TestApp "$1" "$2"
