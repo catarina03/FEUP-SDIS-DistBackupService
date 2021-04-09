@@ -83,4 +83,28 @@ public class DiskState implements Serializable {
         }
         return result;
     }
+
+
+    public int getMaxNumberOfFileChunks(BackupFile backupFile){
+        return (int) backupFile.chunks.mappingCount();
+    }
+
+    public boolean allChunksExist(String fileId){
+        BackupFile file = this.files.get(fileId);
+        int chunkNumber = getMaxNumberOfFileChunks(file);
+        int count = 0;
+
+        for (int i = 0; i < chunkNumber; i++){
+            String chunkId = file.fileId + i;
+            if (toBeRestoredChunks.get(chunkId) != null){
+                count++;
+            }
+        }
+
+        System.out.println("Checking if all chunks are present, max chunk number: " + chunkNumber + " we have: " + count);
+        System.out.println(chunkNumber == count);
+
+        return chunkNumber == count;
+    }
+
 }

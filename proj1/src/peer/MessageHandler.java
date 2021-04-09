@@ -10,9 +10,13 @@ import tasks.ChunkTask;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MessageHandler {
+    private static final int NUMBER_OF_WORKERS = 10;
     private Peer peer;
     protected final String doubleCRLF = "\r\n\r\n";
     private final String ENHANCED = "2.0";
@@ -22,7 +26,7 @@ public class MessageHandler {
     }
 
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
-        String newMessage = new String(message, StandardCharsets.ISO_8859_1);
+        String newMessage = new String(message);
         ArrayList<String> messageArray = new ArrayList<>(Arrays.asList(newMessage.split(this.doubleCRLF, 2)));
 
         String headerAsString = messageArray.get(0);
@@ -36,7 +40,7 @@ public class MessageHandler {
 
         byte[] body = new byte[0];
         if (messageArray.size() != 1) {
-            body = messageArray.get(1).getBytes(StandardCharsets.ISO_8859_1);
+            body = messageArray.get(1).getBytes();
         }
 
         switch (newHeader.messageType) {
@@ -93,20 +97,30 @@ public class MessageHandler {
                 Header chunkHeader = new Header(newHeader.version, "CHUNK", this.peer.id, newHeader.fileId,
                         newHeader.chunkNo);
                 ChunkTask chunkTask = new ChunkTask(this.peer, chunkHeader, chunk);
-                chunkTask.run();
+
+
+                Random rand = new Random();
+                int upperbound = 401;
+                int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-400
+
+                ScheduledThreadPoolExecutor scheduler =  new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
+                scheduler.schedule(chunkTask, randomDelay, TimeUnit.MILLISECONDS);
+
+
+                //chunkTask.run();
             }
 
             System.out.println("Recieved GetChunk");
             break;
 
         case "CHUNK":
-            if (this.peer.storage.files.containsKey(newHeader.fileId)) {
+            if (this.peer.storage.files.containsKey(newHeader.fileId) && !this.peer.storage.toBeRestoredChunks.containsKey(newHeader.fileId+newHeader.chunkNo)) {
                 System.out.println("-----------Beginning of chunk----------\n");
 
                 String chunkChunkId = newHeader.fileId + newHeader.chunkNo;
 
-                System.out.println("IN CHUNK HANDLER, GOT: " + chunkChunkId);
-                System.out.println("Body: " + new String(body));
+                System.out.println("IN CHUNK HANDLER FOR " + chunkChunkId);
+                //System.out.println("Body: " + new String(body));
 
                 // Guardar chunk num mapa de chunk para serem usados em restore
                 this.peer.storage.toBeRestoredChunks.putIfAbsent(chunkChunkId, body);
@@ -115,12 +129,14 @@ public class MessageHandler {
                 // ficheiro
                 BackupChunk chunkChunk = new BackupChunk(chunkChunkId, body.length, 0, body);
                 System.out.println("BACKUP CHUNK IS: " + chunkChunk.toString());
+                System.out.println(new String(body));
 
                 AssembleFileTask assembleFileTask = new AssembleFileTask(this.peer, newHeader, chunkChunk);
-
                 assembleFileTask.run();
 
-                System.out.println("----------End of chunk----------");
+
+
+                System.out.println("----------End of chunk----------\n");
             }
             break;
 

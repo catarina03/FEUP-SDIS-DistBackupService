@@ -1,6 +1,7 @@
 package messages;
 
 
+import files.BackupFile;
 import peer.Header;
 
 import java.io.ByteArrayOutputStream;
