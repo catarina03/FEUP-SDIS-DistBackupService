@@ -1,19 +1,17 @@
 package messages;
 
-
-import files.BackupFile;
 import peer.Header;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class StoredMessage extends Message{
+public class GetChunkMessage extends Message {
     /**
      *
      */
     private static final long serialVersionUID = 1L;
 
-    public StoredMessage(Header header, String address, int port) {
+    public GetChunkMessage(Header header, String address, int port) {
         super(header, address, port);
     }
 

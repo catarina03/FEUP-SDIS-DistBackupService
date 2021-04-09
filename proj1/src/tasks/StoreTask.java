@@ -24,6 +24,7 @@ public class StoreTask extends Task{
     }
 
     private void backupAndAcknowledge(){
+
         // STORES CHUNK
         this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
 

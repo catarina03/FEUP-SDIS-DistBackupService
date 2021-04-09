@@ -5,9 +5,11 @@ import files.BackupFile;
 import files.FileManager;
 import messages.PutchunkMessage;
 import messages.DeleteMessage;
+import messages.GetChunkMessage;
 import rmi.RemoteInterface;
 import tasks.PutchunkTask;
 import tasks.DeleteTask;
+import tasks.GetChunkTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -194,9 +196,24 @@ public class Peer implements RemoteInterface {
 
     @Override
     public String restore(String pathname) {
-
         String result = "Peer" + this.id + ": received RESTORE request.";
+        
+        BackupFile fileToBeRestored = new BackupFile(pathname, 1);
+        if(!storage.files.containsKey(fileToBeRestored.fileId)){
+            throw new IllegalArgumentException("Requested file was not backed up from this Peer.");
+        }
 
+        long numberOfFileChunks = this.storage.files.get(fileToBeRestored.fileId).chunks.mappingCount();
+
+        // send Getchunk for every file chunk
+        for (int chunkNo = 0; chunkNo < numberOfFileChunks; chunkNo++){
+            Header header = new Header(this.version, "GETCHUNK", this.id, fileToBeRestored.fileId, chunkNo);
+            GetChunkMessage message = new GetChunkMessage(header, multichannelscontrol.getMulticastAddress(), multichannelscontrol.getMulticastPort());
+
+            GetChunkTask getChunkTask = new GetChunkTask(this, message);
+            getChunkTask.run();
+        }
+        
         return result;
 
     }
