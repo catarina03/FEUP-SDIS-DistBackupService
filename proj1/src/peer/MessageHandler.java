@@ -3,9 +3,11 @@ package peer;
 import files.BackupChunk;
 import files.BackupFile;
 import messages.InvalidMessageException;
+import messages.PutchunkMessage;
 import tasks.StoreTask;
 import tasks.AssembleFileTask;
 import tasks.ChunkTask;
+import tasks.PutchunkTask;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -64,7 +66,7 @@ public class MessageHandler {
             if (newHeader.senderId != this.peer.id
                     && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed) {
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
-                BackupChunk newChunk = new BackupChunk(chunkId, body.length, newHeader.replicationDegree, body);
+                BackupChunk newChunk = new BackupChunk(chunkId, newHeader.fileId, newHeader.chunkNo, body.length, newHeader.replicationDegree, body);
 
                 // CREATES TASK THAT SENDS STORED MESSAGES
                 StoreTask newTask = new StoreTask(this.peer, newHeader, newChunk);
@@ -97,7 +99,6 @@ public class MessageHandler {
                     BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
                     backedUpFile.updateChunk(chunkId);
                 }
-
             }
             break;
 
@@ -134,7 +135,7 @@ public class MessageHandler {
 
                 // Criar uma task (?) que vai buscar todos os chunks necessarios e monta o
                 // ficheiro
-                BackupChunk chunkChunk = new BackupChunk(chunkChunkId, body.length, 0, body);
+                BackupChunk chunkChunk = new BackupChunk(chunkChunkId, newHeader.fileId, newHeader.chunkNo, body.length, 0, body);
 
                 AssembleFileTask assembleFileTask = new AssembleFileTask(this.peer, newHeader, chunkChunk);
                 assembleFileTask.run();
@@ -161,19 +162,43 @@ public class MessageHandler {
                     this.peer.storage.chunksLocation.remove(deleteChunkId);
                 }
             }
-
             break;
 
         case "REMOVED":
-            // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-            System.out.println("remove");
+        String removedChunkId = newHeader.fileId + newHeader.chunkNo;
+
+            if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.contains(removedChunkId)){
+
+                // ON RECEIVING REMOVED, PEER UPDATES MAPAS DE PERCEIVED E LOCATION
+                /*
+                this.peer.storage.chunksReplicationDegree.replace(removedChunkId, 
+                this.peer.storage.chunksReplicationDegree.get(removedChunkId), 
+                this.peer.storage.chunksReplicationDegree.get(removedChunkId) - 1);
+                
+                */
+                Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.compute(removedChunkId, (k, v) -> v = v - 1);
+
+                
+                ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
+                if (locations != null){
+                    locations.remove(newHeader.senderId);
+                }
+
+                // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK
+                if (currentReplicationDegree < this.peer.storage.backedUpChunks.get(removedChunkId).getDesiredReplicationDegree()){
+                    Header putchunkHeader = new Header(this.peer.version, "PUTCHUNK", this.peer.id, newHeader.fileId, newHeader.chunkNo, this.peer.storage.backedUpChunks.get(removedChunkId).getDesiredReplicationDegree());
+                    PutchunkMessage putchunkMessage = new PutchunkMessage(putchunkHeader, this.peer.storage.backedUpChunks.get(removedChunkId), this.peer.multicastDataBackupAddress, this.peer.multicastDataBackupPort);
+
+                    PutchunkTask putchunkTask = new PutchunkTask(this.peer, putchunkMessage);
+                    putchunkTask.run();
+                }
+            }    
             break;
 
         default:
             System.out.println("Message type " + newHeader.messageType + " not recognized.");
             break;
         }
-
         return;
     }
 

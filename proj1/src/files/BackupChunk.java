@@ -12,8 +12,8 @@ public class BackupChunk extends Chunk{
 
     // <Version> PUTCHUNK <SenderId> <FileId> <ChunkNo> <ReplicationDeg>
     // <CRLF><CRLF><Body>
-    public BackupChunk(String id, int size, int desiredReplicationDegree, byte[] body) {
-        super(id, size, desiredReplicationDegree, body);
+    public BackupChunk(String id, String fileId, int chunkNo, int size, int desiredReplicationDegree, byte[] body) {
+        super(id, fileId, chunkNo, size, desiredReplicationDegree, body);
     }
 
     public String getId() {

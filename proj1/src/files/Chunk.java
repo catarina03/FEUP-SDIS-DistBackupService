@@ -9,6 +9,8 @@ public abstract class Chunk implements Serializable {
     private static final long serialVersionUID = 1L;
     
     public String id;
+    public String fileId;
+    public int chunkNo;
     protected int size;
     protected int desiredReplicationDegree;
     public byte[] body;
@@ -18,8 +20,10 @@ public abstract class Chunk implements Serializable {
         this.size = 0;
     }
     
-    public Chunk(String id, int size, int desiredReplicationDegree, byte[] body) {
+    public Chunk(String id, String fileId, int chunkNo, int size, int desiredReplicationDegree, byte[] body) {
         this.id = id;
+        this.fileId = fileId;
+        this.chunkNo = chunkNo;
         this.size = size;
         this.desiredReplicationDegree = desiredReplicationDegree;
         this.body = body;

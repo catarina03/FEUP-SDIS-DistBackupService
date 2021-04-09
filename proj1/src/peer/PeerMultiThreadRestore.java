@@ -35,16 +35,13 @@ public class PeerMultiThreadRestore implements Runnable {
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
-
     public String getMulticastAddress() {
         return multicastAddress;
     }
 
-
     public int getMulticastPort() {
         return multicastPort;
     }
-
 
     public void run() {
 

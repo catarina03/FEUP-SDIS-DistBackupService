@@ -11,6 +11,7 @@ public class Header {
     public int chunkNo;
     public int replicationDegree;
 
+    // PUTCHUNK
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo, int replicationDegree) {
         this.version = version;
         this.messageType = messageType;
@@ -20,7 +21,7 @@ public class Header {
         this.replicationDegree = replicationDegree;
     }
 
-    // STORED, GETCHUNK AND CHUNK HEADER
+    // STORED, GETCHUNK, CHUNK AND REMOVED HEADER
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo) {
         this.version = version;
         this.messageType = messageType;
@@ -48,7 +49,7 @@ public class Header {
             this.replicationDegree = Integer.parseInt(array.get(5).trim());
         }
 
-        // Header STORED, GETCHUNK AND CHUNK HEADER
+        // Header STORED, GETCHUNK, CHUNK AND REMOVED HEADER
         if (array.size() == 5) {
             this.version = array.get(0).trim();
             this.messageType = array.get(1).trim();
@@ -76,10 +77,11 @@ public class Header {
             return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " "
                     + replicationDegree;
         }
-        if (messageType == "STORED" || messageType == "GETCHUNK" || messageType == "CHUNK") {
-            return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo;
+        if (messageType.equals("DELETE")){
+            return version + " " + messageType + " " + senderId + " " + fileId; 
         }
-        return version + " " + messageType + " " + senderId + " " + fileId;
+        return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo;  // STORED, GETCHUNK, CHUNK
+                                                                                            // AND REMOVED
     }
 
     public int getSizeInBytes() {

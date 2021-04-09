@@ -8,6 +8,7 @@ import messages.DeleteMessage;
 import messages.GetChunkMessage;
 import rmi.RemoteInterface;
 import tasks.PutchunkTask;
+import tasks.RemovedTask;
 import tasks.DeleteTask;
 import tasks.GetChunkTask;
 
@@ -218,15 +219,52 @@ public class Peer implements RemoteInterface {
 
     }
 
+
     @Override
     public String reclaim(int maxDiskSpace) {
+        if (maxDiskSpace < 0){
+            return "Invalid argument: maximum disk space has to be a positive integer or zero.";
+        }
 
+        
         String result = "Peer" + this.id + ": received RECLAIM request.";
+        
+        if (maxDiskSpace >= this.storage.maxCapacityAllowed){
+            this.storage.maxCapacityAllowed = maxDiskSpace;
+            System.out.println("Storage capacity upgraded to: " + maxDiskSpace);
+        }
+        else {
+            //if maxdiskspace == 0 delete everything
 
+            //CHECK PEER STORAGE TO REMOVE ENOUGH CHUNKS TO FREE SPACE 
+            // (ALGORITHM: REMOVER O CHUNK (OU CHUNKS) MAIS PEQUENO QUE CONSIGA LIBERTAR O ESPAÇO PEDIDO, MINIMO NUMERO DE CHUNKS)
+    
+            //ATUALIZAR MAPAS E ESPAÇOS 
+            //SEND REMOVED FOR EACH DELETED CHUNK
+
+            System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
+
+            System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+            System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
+
+            this.storage.maxCapacityAllowed = maxDiskSpace;
+
+            System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+            System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
+
+            RemovedTask task = new RemovedTask(this, maxDiskSpace);
+            task.run();
+
+            // ON RECEIVING REMOVED, PEER UPDATES MAPAS 
+            // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK
+
+            //this.storage.maxCapacityAllowed = maxDiskSpace;
+        }
         return result;
 
     }
 
+    
     @Override
     public String state() {
         return this.storage.toString();

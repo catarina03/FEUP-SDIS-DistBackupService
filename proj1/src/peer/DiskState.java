@@ -75,10 +75,15 @@ public class DiskState implements Serializable {
             result += "\nID: " + backupChunk.id;
             result += "\nSize: " + backupChunk.getSize();
             result += "\nDesired Replication Degree: " + backupChunk.getDesiredReplicationDegree();
-            result += "\nPerceived replication degree: " + this.chunksReplicationDegree.get(key) + "\n";
+            result += "\nPerceived replication degree: " + this.chunksReplicationDegree.get(key);
+            result += "\nLocations: " + this.chunksLocation.get(key) + "\n";
         }
         return result;
     }
+
+// 
+// 
+// 
 
 
     public int getMaxNumberOfFileChunks(BackupFile backupFile){
