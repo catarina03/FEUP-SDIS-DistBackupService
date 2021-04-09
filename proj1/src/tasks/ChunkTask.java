@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class ChunkTask extends Task{
     private final String ENHANCED = "2.0";
@@ -25,15 +23,6 @@ public class ChunkTask extends Task{
                 this.peer.multicastDataRestorePort);
 
         byte[] messageInBytes = chunkMessage.convertToBytes();
-
-        /*
-        Random rand = new Random();
-        int upperbound = 401;
-        int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-400
-
-        scheduler.schedule(sendChunkMessage(messageInBytes), randomDelay, TimeUnit.MILLISECONDS);
-
-         */
 
         sendChunkMessage(messageInBytes);
     }

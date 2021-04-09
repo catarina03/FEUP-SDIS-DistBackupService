@@ -213,8 +213,6 @@ public class Peer implements RemoteInterface {
             GetChunkTask getChunkTask = new GetChunkTask(this, message);
             getChunkTask.run();
         }
-
-        // formar o file e dar store
         
         return result;
 

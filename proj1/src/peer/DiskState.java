@@ -17,7 +17,6 @@ public class DiskState implements Serializable {
     public int peerId;
     public long maxCapacityAllowed = 200000;
     public long occupiedSpace;
-    // public transient String storageFolderName;
 
     // chunks & files
     public ConcurrentHashMap<String, BackupChunk> backedUpChunks; // Other's chunks that this peer stored
@@ -32,7 +31,6 @@ public class DiskState implements Serializable {
     public DiskState(int peerId) {
         this.peerId = peerId;
         this.occupiedSpace = 0;
-        // this.storageFolderName = "peer" + peerId;
 
         this.backedUpChunks = new ConcurrentHashMap<>();
         this.files = new ConcurrentHashMap<>();
@@ -58,8 +56,6 @@ public class DiskState implements Serializable {
             for (String chunkKey : backupFile.chunks.keySet()) {
                 result += "\nChunk " + chunkKey + ": " + backupFile.desiredReplicationDegree;
             }
-
-            // ...
         }
 
         result += "\n\n---------- BACKED UP CHUNKS OF PEER " + this.peerId + " ----------\n\n";
@@ -100,9 +96,6 @@ public class DiskState implements Serializable {
                 count++;
             }
         }
-
-        System.out.println("Checking if all chunks are present, max chunk number: " + chunkNumber + " we have: " + count);
-        System.out.println(chunkNumber == count);
 
         return chunkNumber == count;
     }

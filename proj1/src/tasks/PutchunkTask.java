@@ -36,6 +36,7 @@ public class PutchunkTask extends Task{
 
                 //sending request
                 DatagramPacket putChunkPacket = new DatagramPacket(messageInBytes, messageInBytes.length, InetAddress.getByName(this.message.address), this.message.port);
+
                 socket.send(putChunkPacket);
 
                 socket.close();

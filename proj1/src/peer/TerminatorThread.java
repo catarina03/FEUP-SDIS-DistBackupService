@@ -17,7 +17,6 @@ public class TerminatorThread implements Runnable{
                 peer.fileManager.updateState(); //saves state before shutting down
                 
                 System.out.println("\nSaving information into local storage and shutting down ..."); 
-
             }
         });
     } 

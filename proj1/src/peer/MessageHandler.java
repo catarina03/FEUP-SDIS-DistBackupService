@@ -19,29 +19,44 @@ public class MessageHandler {
     private static final int NUMBER_OF_WORKERS = 10;
     private Peer peer;
     protected final String doubleCRLF = "\r\n\r\n";
+    public final static byte CR = 0xD;
+    public final static byte LF = 0xA;
     private final String ENHANCED = "2.0";
 
     public MessageHandler(Peer peer) {
         this.peer = peer;
     }
 
+
+    public int getFirstCRLFPosition(byte[] message){
+        int messageLength = message.length;
+
+        for (int i = 0; i < messageLength - 3; i++) {
+            if (message[i] == CR && message[i + 1] == LF && message[i + 2] == CR && message[i + 3] == LF) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
-        String newMessage = new String(message);
-        ArrayList<String> messageArray = new ArrayList<>(Arrays.asList(newMessage.split(this.doubleCRLF, 2)));
 
-        String headerAsString = messageArray.get(0);
+        int firstCRLFPosition = getFirstCRLFPosition(message);
+        if (firstCRLFPosition == -1) {
+            throw new InvalidMessageException("Invalid message: no CRLF");
+        }
+
+        String headerAsString = new String(message, 0, firstCRLFPosition);
         ArrayList<String> headerArray = new ArrayList<>(Arrays.asList(headerAsString.split(" ", 6)));
-
         if (headerArray.size() < 4) {
             throw new InvalidMessageException("Invalid Header");
         }
 
         Header newHeader = new Header(headerArray);
+        byte[] body = Arrays.copyOfRange(message, firstCRLFPosition + 4, message.length);
 
-        byte[] body = new byte[0];
-        if (messageArray.size() != 1) {
-            body = messageArray.get(1).getBytes();
-        }
 
         switch (newHeader.messageType) {
         case "PUTCHUNK":
@@ -105,22 +120,14 @@ public class MessageHandler {
 
                 ScheduledThreadPoolExecutor scheduler =  new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
                 scheduler.schedule(chunkTask, randomDelay, TimeUnit.MILLISECONDS);
-
-
                 //chunkTask.run();
             }
-
-            System.out.println("Recieved GetChunk");
             break;
 
         case "CHUNK":
             if (this.peer.storage.files.containsKey(newHeader.fileId) && !this.peer.storage.toBeRestoredChunks.containsKey(newHeader.fileId+newHeader.chunkNo)) {
-                System.out.println("-----------Beginning of chunk----------\n");
 
                 String chunkChunkId = newHeader.fileId + newHeader.chunkNo;
-
-                System.out.println("IN CHUNK HANDLER FOR " + chunkChunkId);
-                //System.out.println("Body: " + new String(body));
 
                 // Guardar chunk num mapa de chunk para serem usados em restore
                 this.peer.storage.toBeRestoredChunks.putIfAbsent(chunkChunkId, body);
@@ -128,15 +135,9 @@ public class MessageHandler {
                 // Criar uma task (?) que vai buscar todos os chunks necessarios e monta o
                 // ficheiro
                 BackupChunk chunkChunk = new BackupChunk(chunkChunkId, body.length, 0, body);
-                System.out.println("BACKUP CHUNK IS: " + chunkChunk.toString());
-                System.out.println(new String(body));
 
                 AssembleFileTask assembleFileTask = new AssembleFileTask(this.peer, newHeader, chunkChunk);
                 assembleFileTask.run();
-
-
-
-                System.out.println("----------End of chunk----------\n");
             }
             break;
 

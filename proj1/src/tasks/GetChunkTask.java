@@ -9,7 +9,6 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.Random;
 
 public class GetChunkTask extends Task{
     private int tries;
@@ -37,15 +36,9 @@ public class GetChunkTask extends Task{
             socket.close();
 
             if (this.tries < 3) {
-                //Random rand = new Random();
-                //int upperbound = 501;
-                //int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-500
-
                 if (!this.peer.storage.allChunksExist(this.message.header.fileId)){
                     scheduler.schedule(this, (long) Math.pow(2, this.tries), TimeUnit.SECONDS);
                 }
-
-
             }
             this.tries++;
             
