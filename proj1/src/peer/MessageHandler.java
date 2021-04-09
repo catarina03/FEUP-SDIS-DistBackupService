@@ -146,8 +146,32 @@ public class MessageHandler {
         case "DELETE":
             // delete file
             this.peer.storage.files.remove(newHeader.fileId);
+            
+            // delete file in local storage
+            this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId, newHeader.chunkNo);
 
             // delete chunks and their references
+            for (BackupChunk backupChunk : this.peer.storage.backedUpChunks.values()){
+                if (backupChunk.fileId == newHeader.fileId){
+                    String deleteChunkId = backupChunk.id;
+
+                    if (this.peer.storage.backedUpChunks.contains(deleteChunkId)) {
+                        this.peer.storage.backedUpChunks.remove(deleteChunkId);
+                    }
+    
+                    if (this.peer.storage.chunksReplicationDegree.containsKey(deleteChunkId)) {
+                        this.peer.storage.chunksReplicationDegree.remove(deleteChunkId);
+                    }
+    
+                    if (this.peer.storage.chunksLocation.containsKey(deleteChunkId)) {
+                        this.peer.storage.chunksLocation.remove(deleteChunkId);
+                    }
+    
+                    // delete chunks in local storage
+                    this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId, backupChunk.chunkNo);
+                }
+            }
+            /*
             for (int i = 0; i < 10; i++) {
                 String deleteChunkId = newHeader.fileId + i;
 
@@ -162,7 +186,13 @@ public class MessageHandler {
                 if (this.peer.storage.chunksLocation.containsKey(deleteChunkId)) {
                     this.peer.storage.chunksLocation.remove(deleteChunkId);
                 }
+
+                // delete chunks in local storage
+                this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId, i);
             }
+            */
+
+
             break;
 
         case "REMOVED":

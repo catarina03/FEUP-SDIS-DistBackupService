@@ -173,5 +173,17 @@ public class FileManager {
         }
     }
 
+    public void deleteFileFromDirectory(int peerId, String fileId, int chunkNo){
+        File newFile = new File("../peerFiles/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
+        newFile.delete();
+        //FileOutputStream fileOutputStream;
+
+        /*
+        String[]entries = index.list();
+        for(String s: entries){
+            File currentFile = new File(index.getPath(),s);
+        }
+        */
+    }
 
 }
