@@ -64,7 +64,8 @@ public class MessageHandler {
         case "PUTCHUNK":
 
             if (newHeader.senderId != this.peer.id
-                    && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed) {
+                    && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed &&
+                        !this.peer.storage.files.containsKey(newHeader.fileId)) {
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
                 BackupChunk newChunk = new BackupChunk(chunkId, newHeader.fileId, newHeader.chunkNo, body.length, newHeader.replicationDegree, body);
 
@@ -165,20 +166,29 @@ public class MessageHandler {
             break;
 
         case "REMOVED":
-        String removedChunkId = newHeader.fileId + newHeader.chunkNo;
+            String removedChunkId = newHeader.fileId + newHeader.chunkNo;
+            System.out.println("I'm being removed: "+removedChunkId);
 
-            if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.contains(removedChunkId)){
+            if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.containsKey(removedChunkId)){
 
                 // ON RECEIVING REMOVED, PEER UPDATES MAPAS DE PERCEIVED E LOCATION
-                /*
-                this.peer.storage.chunksReplicationDegree.replace(removedChunkId, 
-                this.peer.storage.chunksReplicationDegree.get(removedChunkId), 
-                this.peer.storage.chunksReplicationDegree.get(removedChunkId) - 1);
                 
-                */
-                Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.compute(removedChunkId, (k, v) -> v = v - 1);
+                // this.peer.storage.chunksReplicationDegree.replace(removedChunkId, 
+                // this.peer.storage.chunksReplicationDegree.get(removedChunkId), 
+                // this.peer.storage.chunksReplicationDegree.get(removedChunkId) - 1);
+                
+                System.out.println(removedChunkId);
+                System.out.println("Replication degree before update: "+ this.peer.storage.chunksReplicationDegree.get(removedChunkId));
 
+
+                this.peer.storage.chunksReplicationDegree.computeIfPresent(removedChunkId, (k, v) -> v - 1);
+                Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.get(removedChunkId);
                 
+
+                System.out.println("Replication degree after update: "
+                        + this.peer.storage.chunksReplicationDegree.get(removedChunkId));
+
+
                 ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
                 if (locations != null){
                     locations.remove(newHeader.senderId);

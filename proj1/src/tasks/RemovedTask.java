@@ -125,20 +125,21 @@ public class RemovedTask extends Task{
 
                 this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).getSize();
 
+                // this.peer.storage.chunksReplicationDegree.replace(sortedChunkIds.get(0), 
+                // this.peer.storage.chunksReplicationDegree.get(sortedChunkIds.get(0)), 
+                // this.peer.storage.chunksReplicationDegree.get(sortedChunkIds.get(0)) - 1);  //TODO:+ OU -, also why are we doing this?
+                // this.peer.storage.chunksReplicationDegree.computeIfPresent(sortedChunkIds.get(0), (k, v) -> v - 1);
+                // this.peer.storage.chunksLocation.get(sortedChunkIds.get(0)).remove(this.peer.id);
                 
-                this.peer.storage.chunksReplicationDegree.replace(sortedChunkIds.get(0), 
-                this.peer.storage.chunksReplicationDegree.get(sortedChunkIds.get(0)), 
-                this.peer.storage.chunksReplicationDegree.get(sortedChunkIds.get(0)) + 1);
-                this.peer.storage.chunksLocation.get(sortedChunkIds.get(0)).remove(this.peer.id);
-                
-                // APAGAR O FICHEIRO LOCAL
-                
+                // make message
                 this.header = new Header(this.peer.version, "REMOVED", this.peer.id, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).fileId, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).chunkNo);
                 this.message = new RemovedMessage(header, this.peer.multicastControlAddress, this.peer.multicastControlPort);
+                
+                // APAGAR O FICHEIRO LOCAL
+                this.peer.storage.chunksLocation.remove(sortedChunkIds.get(0));
+                this.peer.storage.chunksReplicationDegree.remove(sortedChunkIds.get(0));
                 this.peer.storage.backedUpChunks.remove(sortedChunkIds.get(0));
-
     /*
-                    
                 if (this.tries < 3) {
                     Random rand = new Random();
                     int upperbound = 401;
