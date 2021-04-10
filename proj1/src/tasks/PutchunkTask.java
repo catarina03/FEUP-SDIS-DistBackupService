@@ -29,6 +29,9 @@ public class PutchunkTask extends Task{
 
             this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 0);
 
+            System.out.println("Rep degree in storage: " + this.peer.storage.chunksReplicationDegree.get(chunkId));
+            System.out.println("Rep degree in message header: " + message.header.replicationDegree);
+
             if (this.peer.storage.chunksReplicationDegree.get(chunkId) < message.header.replicationDegree){
                 MulticastSocket socket = new MulticastSocket(this.message.port);
                 socket.setTimeToLive(1);

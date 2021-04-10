@@ -38,6 +38,12 @@ public class DeleteTask extends Task {
 
             socket.close();
 
+            this.peer.storage.files.remove(message.header.fileId);
+            this.peer.storage.chunksReplicationDegree.remove(message.header.fileId + message.header.chunkNo);
+            this.peer.storage.chunksLocation.remove(message.header.fileId + message.header.chunkNo);
+
+            this.peer.fileManager.deleteFileFromDirectory(this.peer.id, message.header.fileId);
+
             if (this.tries < 4) {
                 Random rand = new Random();
                 int upperbound = 501;

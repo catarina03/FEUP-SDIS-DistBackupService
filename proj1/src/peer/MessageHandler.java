@@ -63,6 +63,20 @@ public class MessageHandler {
         switch (newHeader.messageType) {
         case "PUTCHUNK":
 
+/*
+            newHeader.senderId != this.peer.id
+                    && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed &&
+                    !this.peer.storage.files.containsKey(newHeader.fileId))
+
+ */
+
+            System.out.println("Sender id: " + newHeader.senderId);
+            System.out.println("Peer id: " + this.peer.id);
+            long sum = this.peer.storage.occupiedSpace + body.length;
+            System.out.println("Occupied space: " + this.peer.storage.occupiedSpace + " Body length: " + body.length + " Sum: " + sum);
+            System.out.println("Max capacity: " + this.peer.storage.maxCapacityAllowed);
+            System.out.println("Contains file in files? " + this.peer.storage.files.containsKey(newHeader.fileId));
+
             if (newHeader.senderId != this.peer.id
                     && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed &&
                         !this.peer.storage.files.containsKey(newHeader.fileId)) {
@@ -148,27 +162,22 @@ public class MessageHandler {
             this.peer.storage.files.remove(newHeader.fileId);
             
             // delete file in local storage
-            this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId, newHeader.chunkNo);
+            this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId);
 
             // delete chunks and their references
             for (BackupChunk backupChunk : this.peer.storage.backedUpChunks.values()){
-                if (backupChunk.fileId == newHeader.fileId){
+                if (backupChunk.fileId.equals(newHeader.fileId)){
                     String deleteChunkId = backupChunk.id;
+                    this.peer.storage.occupiedSpace -= backupChunk.getSize();
 
-                    if (this.peer.storage.backedUpChunks.contains(deleteChunkId)) {
-                        this.peer.storage.backedUpChunks.remove(deleteChunkId);
-                    }
-    
-                    if (this.peer.storage.chunksReplicationDegree.containsKey(deleteChunkId)) {
-                        this.peer.storage.chunksReplicationDegree.remove(deleteChunkId);
-                    }
-    
-                    if (this.peer.storage.chunksLocation.containsKey(deleteChunkId)) {
-                        this.peer.storage.chunksLocation.remove(deleteChunkId);
-                    }
+                    this.peer.storage.backedUpChunks.remove(deleteChunkId);
+
+                    this.peer.storage.chunksReplicationDegree.remove(deleteChunkId);
+
+                    this.peer.storage.chunksLocation.remove(deleteChunkId);
     
                     // delete chunks in local storage
-                    this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId, backupChunk.chunkNo);
+                    this.peer.fileManager.deleteChunkFromDirectory(this.peer.id, newHeader.fileId, backupChunk.chunkNo);
                 }
             }
             /*
