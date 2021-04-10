@@ -38,11 +38,21 @@ public class DeleteTask extends Task {
 
             socket.close();
 
-            this.peer.storage.files.remove(message.header.fileId);
-            this.peer.storage.chunksReplicationDegree.remove(message.header.fileId + message.header.chunkNo);
-            this.peer.storage.chunksLocation.remove(message.header.fileId + message.header.chunkNo);
 
-            this.peer.fileManager.deleteFileFromDirectory(this.peer.id, message.header.fileId);
+            if (this.tries == 0){
+                for (String chunkId : this.peer.storage.files.get(message.header.fileId).chunks.keySet()){
+                    //System.out.println("KEY SET OF FILE CHUNK: " + chunkId);
+                    //System.out.println("REP DEGREE CONTAINS? " + this.peer.storage.chunksReplicationDegree.containsKey(chunkId));
+                    //System.out.println("LOCATION DEGREE CONTAINS? " + this.peer.storage.chunksLocation.containsKey(chunkId));
+
+                    this.peer.storage.chunksReplicationDegree.remove(chunkId);
+                    this.peer.storage.chunksLocation.remove(chunkId);
+                }
+
+                this.peer.fileManager.deleteFileFromDirectory(this.peer.id, message.header.fileId);
+                this.peer.storage.files.remove(message.header.fileId);
+            }
+
 
             if (this.tries < 4) {
                 Random rand = new Random();

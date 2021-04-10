@@ -38,7 +38,7 @@ public class AssembleFileTask extends Task{
             //make file
             int chunkNumber = this.peer.storage.getMaxNumberOfFileChunks(backupFile);
 
-            File restoredFile = new File("../peerFiles/peer" + this.peer.id + "/restored_" + trimPath(backupFile.pathname));
+            File restoredFile = new File("../peerStorage/peer" + this.peer.id + "/restored_" + trimPath(backupFile.pathname));
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(restoredFile);
                 FileChannel fc = fileOutputStream.getChannel();

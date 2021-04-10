@@ -52,7 +52,7 @@ public class Peer implements RemoteInterface {
         this.storage = new DiskState(this.id);
 
         this.fileManager.recoverState();
-        this.fileManager.updateState();
+        //this.fileManager.updateState();
 
 
         this.multicastControlAddress = mcAddress;

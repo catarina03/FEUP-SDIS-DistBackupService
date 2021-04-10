@@ -64,7 +64,7 @@ public class FileManager {
     public void recoverState() {
         // iterate files
         try {
-            File dir = new File("../peerFiles/peer" + this.peer.id + "/files");
+            File dir = new File("../peerStorage/peer" + this.peer.id + "/files");
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File f : directoryListing) {
@@ -86,7 +86,7 @@ public class FileManager {
 
         // iterate chunks
         try {
-            File dir = new File("../peerFiles/peer" + this.peer.id + "/chunks");
+            File dir = new File("../peerStorage/peer" + this.peer.id + "/chunks");
             File[] directoryListing = dir.listFiles();
             if (directoryListing != null) {
                 for (File f : directoryListing) {
@@ -110,7 +110,7 @@ public class FileManager {
         // iterate diskState
         try {
             FileInputStream fileInputStream = new FileInputStream(
-                    "../peerFiles/peer" + this.peer.id + "/diskState.ser");
+                    "../peerStorage/peer" + this.peer.id + "/diskState.ser");
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             this.peer.storage = (DiskState) objectInputStream.readObject();
             objectInputStream.close();
@@ -127,7 +127,7 @@ public class FileManager {
 
 
     public void updateState() {
-        File diskStateFile = new File("../peerFiles/peer" + this.peer.id + "/diskState.ser");
+        File diskStateFile = new File("../peerStorage/peer" + this.peer.id + "/diskState.ser");
         FileOutputStream fileOutputStream;
         try {
             diskStateFile.createNewFile(); // if file already exists will do nothing 
@@ -143,7 +143,7 @@ public class FileManager {
 
 
     public void saveFileToDirectory(int peerId, BackupFile file) {
-        File newFile = new File("../peerFiles/peer" + peerId + "/files/" + file.fileId + ".ser");
+        File newFile = new File("../peerStorage/peer" + peerId + "/files/" + file.fileId + ".ser");
         FileOutputStream fileOutputStream;
         try {
             newFile.createNewFile(); // if file already exists will do nothing 
@@ -159,7 +159,7 @@ public class FileManager {
 
 
     public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo, String fileId) {
-        File newFile = new File("../peerFiles/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
+        File newFile = new File("../peerStorage/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
         FileOutputStream fileOutputStream;
         try {
             newFile.createNewFile(); // if file already exists will do nothing 
@@ -175,12 +175,12 @@ public class FileManager {
 
 
     public void deleteFileFromDirectory(int peerId, String fileId){
-        File newFile = new File("../peerFiles/peer" + peerId + "/files/" + fileId + ".ser");
+        File newFile = new File("../peerStorage/peer" + peerId + "/files/" + fileId + ".ser");
         newFile.delete();
     }
 
     public void deleteChunkFromDirectory(int peerId, String fileId, int chunkNo){
-        File newFile = new File("../peerFiles/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
+        File newFile = new File("../peerStorage/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
         newFile.delete();
     }
 
