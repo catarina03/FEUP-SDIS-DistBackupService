@@ -20,6 +20,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Peer implements RemoteInterface {
 
@@ -29,11 +31,14 @@ public class Peer implements RemoteInterface {
     public FileManager fileManager;
 
     public int MAX_SIZE_CHUNK = 64000; // in bytes
+    private static final int NUMBER_OF_WORKERS_SENDING = 10;
+    private static final int NUMBER_OF_WORKERS_PROCESSING = 15;
 
     public static PeerMultiThreadControl multichannelscontrol;
     public static PeerMultiThreadBackup multichannelsbackup;
     public static PeerMultiThreadRestore multichannelsrestore;
     public static TerminatorThread terminator;
+    private ExecutorService service;
 
     public String multicastControlAddress;
     public int multicastControlPort;
@@ -62,22 +67,24 @@ public class Peer implements RemoteInterface {
         this.multicastDataRestoreAddress = mdrAddress;
         this.multicastDataRestorePort = Integer.parseInt(mdrPort.trim());
 
+        this.service = Executors.newFixedThreadPool(NUMBER_OF_WORKERS_SENDING);
+
         
 
         try {
             // connect to MC channel
             multichannelscontrol = new PeerMultiThreadControl(this, version, this.multicastControlAddress,
-                    this.multicastControlPort, 10);
+                    this.multicastControlPort, NUMBER_OF_WORKERS_PROCESSING);
             new Thread(multichannelscontrol).start();
 
             // connect to MDB channel
             multichannelsbackup = new PeerMultiThreadBackup(this, version, this.multicastDataBackupAddress,
-                    this.multicastDataBackupPort, 10);
+                    this.multicastDataBackupPort, NUMBER_OF_WORKERS_PROCESSING);
             new Thread(multichannelsbackup).start();
 
             // connect to MDR channel
             multichannelsrestore = new PeerMultiThreadRestore(this, version, this.multicastDataRestoreAddress,
-                    this.multicastDataRestorePort, 10);
+                    this.multicastDataRestorePort, NUMBER_OF_WORKERS_PROCESSING);
             new Thread(multichannelsrestore).start();
 
             terminator = new TerminatorThread(this);
@@ -126,33 +133,38 @@ public class Peer implements RemoteInterface {
     public String backUp(String pathname, String degree) {
         String result = "Peer" + id + ": received BACKUP request.";
 
-        // check replication degree errors
-        int replication_degree = Integer.parseInt(degree);
-        if (replication_degree < 1 || replication_degree > 9) {
-            throw new IllegalArgumentException("Invalid replication degree, must be 1 - 9.");
-        }
+        this.service.execute( () -> {
 
-        // check path errors
-        if (pathname.isEmpty()) {
-            throw new IllegalArgumentException("Empty file path.");
-        }
+            // check replication degree errors
+            int replication_degree = Integer.parseInt(degree);
+            if (replication_degree < 1 || replication_degree > 9) {
+                throw new IllegalArgumentException("Invalid replication degree, must be 1 - 9.");
+            }
 
-        File file = new File(pathname);
-        if (!file.exists()) {
-            throw new IllegalArgumentException("Empty file path.");
-        }
+            // check path errors
+            if (pathname.isEmpty()) {
+                throw new IllegalArgumentException("Empty file path.");
+            }
 
-        // create backup system file
-        BackupFile systemFile = new BackupFile(pathname, replication_degree);
-        
-        Path path = Paths.get(pathname);
-        Path absolutePath = path.toAbsolutePath();
-        
-        fileManager.saveFileToDirectory(this.id, systemFile);
-        fileManager.readFileIntoChunks(absolutePath, systemFile);
-        
-        this.storage.files.putIfAbsent(systemFile.fileId, systemFile);
-        
+            File file = new File(pathname);
+            if (!file.exists()) {
+                throw new IllegalArgumentException("Empty file path.");
+            }
+
+            // create backup system file
+            BackupFile systemFile = new BackupFile(pathname, replication_degree);
+
+            Path path = Paths.get(pathname);
+            Path absolutePath = path.toAbsolutePath();
+
+            fileManager.saveFileToDirectory(this.id, systemFile);
+            fileManager.readFileIntoChunks(absolutePath, systemFile);
+
+            this.storage.files.putIfAbsent(systemFile.fileId, systemFile);
+
+            }
+        );
+
         return result;
     }
 
@@ -170,20 +182,23 @@ public class Peer implements RemoteInterface {
     public String delete(String pathname) {
         String result = "Peer id-" + this.id + ": received DELETE request.";
 
-        // check path errors
-        if (pathname.isEmpty()) {
-            throw new IllegalArgumentException("Empty file path.");
-        }
+        this.service.execute( () -> {
+                // check path errors
+                if (pathname.isEmpty()) {
+                    throw new IllegalArgumentException("Empty file path.");
+                }
 
-        File file = new File(pathname);
-        if (!file.exists()) {
-            throw new IllegalArgumentException("Empty file path.");
-        }
-        
-        BackupFile systemFile = new BackupFile(pathname, 0);
-        Header header = new Header(this.version, "DELETE", this.id, systemFile.fileId);
-        sendDelete(header);
-        
+                File file = new File(pathname);
+                if (!file.exists()) {
+                    throw new IllegalArgumentException("Empty file path.");
+                }
+
+                BackupFile systemFile = new BackupFile(pathname, 0);
+                Header header = new Header(this.version, "DELETE", this.id, systemFile.fileId);
+                sendDelete(header);
+            }
+        );
+
         return result;
     }
 
@@ -198,68 +213,77 @@ public class Peer implements RemoteInterface {
     @Override
     public String restore(String pathname) {
         String result = "Peer" + this.id + ": received RESTORE request.";
-        
-        BackupFile fileToBeRestored = new BackupFile(pathname, 1);
-        if(!storage.files.containsKey(fileToBeRestored.fileId)){
-            throw new IllegalArgumentException("Requested file was not backed up from this Peer.");
-        }
 
-        long numberOfFileChunks = this.storage.files.get(fileToBeRestored.fileId).chunks.mappingCount();
+        this.service.execute( () -> {
+                BackupFile fileToBeRestored = new BackupFile(pathname, 1);
+                if(!storage.files.containsKey(fileToBeRestored.fileId)){
+                    throw new IllegalArgumentException("Requested file was not backed up from this Peer.");
+                }
 
-        // send Getchunk for every file chunk
-        for (int chunkNo = 0; chunkNo < numberOfFileChunks; chunkNo++){
-            Header header = new Header(this.version, "GETCHUNK", this.id, fileToBeRestored.fileId, chunkNo);
-            GetChunkMessage message = new GetChunkMessage(header, multichannelscontrol.getMulticastAddress(), multichannelscontrol.getMulticastPort());
+                long numberOfFileChunks = this.storage.files.get(fileToBeRestored.fileId).chunks.mappingCount();
 
-            GetChunkTask getChunkTask = new GetChunkTask(this, message);
-            getChunkTask.run();
-        }
-        
+                // send Getchunk for every file chunk
+                for (int chunkNo = 0; chunkNo < numberOfFileChunks; chunkNo++){
+                    Header header = new Header(this.version, "GETCHUNK", this.id, fileToBeRestored.fileId, chunkNo);
+                    GetChunkMessage message = new GetChunkMessage(header, multichannelscontrol.getMulticastAddress(), multichannelscontrol.getMulticastPort());
+
+                    GetChunkTask getChunkTask = new GetChunkTask(this, message);
+                    getChunkTask.run();
+                }
+            }
+        );
+
         return result;
-
     }
 
 
     @Override
     public String reclaim(int maxDiskSpace) {
-        if (maxDiskSpace < 0){
-            return "Invalid argument: maximum disk space has to be a positive integer or zero.";
-        }
-
-        
         String result = "Peer" + this.id + ": received RECLAIM request.";
-        
-        if (maxDiskSpace >= this.storage.maxCapacityAllowed){
-            this.storage.maxCapacityAllowed = maxDiskSpace;
-            System.out.println("Storage capacity upgraded to: " + maxDiskSpace);
-        }
-        else {
-            //if maxdiskspace == 0 delete everything
 
-            //CHECK PEER STORAGE TO REMOVE ENOUGH CHUNKS TO FREE SPACE 
-            // (ALGORITHM: REMOVER O CHUNK (OU CHUNKS) MAIS PEQUENO QUE CONSIGA LIBERTAR O ESPAÇO PEDIDO, MINIMO NUMERO DE CHUNKS)
-    
-            //ATUALIZAR MAPAS E ESPAÇOS 
-            //SEND REMOVED FOR EACH DELETED CHUNK
+        this.service.execute( () -> {
 
-            System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
+                if (maxDiskSpace < 0){
+                    throw new IllegalArgumentException("Invalid argument: maximum disk space has to be a positive integer or zero.");
+                }
 
-            System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-            System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
+                if (maxDiskSpace >= this.storage.maxCapacityAllowed){
+                    this.storage.maxCapacityAllowed = maxDiskSpace;
+                    System.out.println("Storage capacity upgraded to: " + maxDiskSpace);
+                }
+                else {
+                    //if maxdiskspace == 0 delete everything
 
-            this.storage.maxCapacityAllowed = maxDiskSpace;
+                    //CHECK PEER STORAGE TO REMOVE ENOUGH CHUNKS TO FREE SPACE
+                    // (ALGORITHM: REMOVER O CHUNK (OU CHUNKS) MAIS PEQUENO QUE CONSIGA LIBERTAR O ESPAÇO PEDIDO, MINIMO NUMERO DE CHUNKS)
 
-            System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-            System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
+                    //ATUALIZAR MAPAS E ESPAÇOS
+                    //SEND REMOVED FOR EACH DELETED CHUNK
 
-            RemovedTask task = new RemovedTask(this, maxDiskSpace);
-            task.run();
+                    System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
 
-            // ON RECEIVING REMOVED, PEER UPDATES MAPAS 
-            // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK
+                    System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+                    System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
 
-            //this.storage.maxCapacityAllowed = maxDiskSpace;
-        }
+                    this.storage.maxCapacityAllowed = maxDiskSpace;
+
+                    System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+                    System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
+
+                    RemovedTask task = new RemovedTask(this, maxDiskSpace);
+                    task.run();
+
+                    // ON RECEIVING REMOVED, PEER UPDATES MAPAS
+                    // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK
+
+                    //this.storage.maxCapacityAllowed = maxDiskSpace;
+                }
+
+
+
+            }
+        );
+
         return result;
 
     }
