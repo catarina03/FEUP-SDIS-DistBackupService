@@ -48,7 +48,7 @@ public class DeleteTask extends Task {
                     //System.out.println("REP DEGREE CONTAINS? " + this.peer.storage.chunksReplicationDegree.containsKey(chunkId));
                     //System.out.println("LOCATION DEGREE CONTAINS? " + this.peer.storage.chunksLocation.containsKey(chunkId));
 
-                    this.peer.storage.chunksReplicationDegree.remove(chunkId);
+                    //this.peer.storage.chunksReplicationDegree.remove(chunkId);
                     this.peer.storage.chunksLocation.remove(chunkId);
                 }
 

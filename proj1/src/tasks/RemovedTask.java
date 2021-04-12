@@ -123,6 +123,9 @@ public class RemovedTask extends Task{
 
                 sortedChunkIds = sortingAlgorithm();
 
+
+                System.out.println("Sorted backed up chunks in peer" + this.peer.id + " :" + sortedChunkIds);
+
                 this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).getSize();
 
                 // this.peer.storage.chunksReplicationDegree.replace(sortedChunkIds.get(0), 
@@ -134,11 +137,25 @@ public class RemovedTask extends Task{
                 // make message
                 this.header = new Header(this.peer.version, "REMOVED", this.peer.id, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).fileId, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).chunkNo);
                 this.message = new RemovedMessage(header, this.peer.multicastControlAddress, this.peer.multicastControlPort);
-                
+
+                System.out.println("BEFORE");
+                System.out.println("Chunks location: " + this.peer.storage.chunksLocation);
+                //System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
+                System.out.println("Chunks backed up: " + this.peer.storage.backedUpChunks);
+
+
                 // APAGAR O FICHEIRO LOCAL
                 this.peer.storage.chunksLocation.remove(sortedChunkIds.get(0));
-                this.peer.storage.chunksReplicationDegree.remove(sortedChunkIds.get(0));
+                //this.peer.storage.chunksReplicationDegree.remove(sortedChunkIds.get(0));
                 this.peer.storage.backedUpChunks.remove(sortedChunkIds.get(0));
+
+                this.peer.fileManager.deleteChunkFromDirectory(this.peer.id, this.header.fileId, this.header.chunkNo);
+
+
+                System.out.println("AFTER");
+                System.out.println("Chunks location: " + this.peer.storage.chunksLocation);
+                //System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
+                System.out.println("Chunks backed up: " + this.peer.storage.backedUpChunks);
     /*
                 if (this.tries < 3) {
                     Random rand = new Random();

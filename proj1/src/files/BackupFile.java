@@ -28,13 +28,18 @@ public class BackupFile implements Serializable {
     }
 
     public void updateChunk(String chunkId){
-        Integer value = chunks.putIfAbsent(chunkId, 1);
-        System.out.println(chunkId);
-        System.out.println(value);
+        chunks.computeIfPresent(chunkId, (k, v) -> v + 1);
+        chunks.putIfAbsent(chunkId, 1);
+        //Integer value = chunks.putIfAbsent(chunkId, 1);
+        //System.out.println(chunkId);
+        //System.out.println(value);
 
+        /*
         if (value != null){
             chunks.replace(chunkId, value + 1);
         }
+
+         */
 
         System.out.println(this.chunks);
     }
