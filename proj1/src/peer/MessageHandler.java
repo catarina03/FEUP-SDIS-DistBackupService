@@ -9,7 +9,6 @@ import tasks.AssembleFileTask;
 import tasks.ChunkTask;
 import tasks.PutchunkTask;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -20,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class MessageHandler {
     private static final int NUMBER_OF_WORKERS = 10;
     private Peer peer;
-    protected final String doubleCRLF = "\r\n\r\n";
+    //protected final String doubleCRLF = "\r\n\r\n";
     public final static byte CR = 0xD;
     public final static byte LF = 0xA;
     private final String ENHANCED = "2.0";
@@ -60,6 +59,7 @@ public class MessageHandler {
         switch (newHeader.messageType) {
         case "PUTCHUNK":
 
+            /*
             System.out.println("Sender id: " + newHeader.senderId);
             System.out.println("Peer id: " + this.peer.id);
             long sum = this.peer.storage.occupiedSpace + body.length;
@@ -67,6 +67,9 @@ public class MessageHandler {
                     + " Sum: " + sum);
             System.out.println("Max capacity: " + this.peer.storage.maxCapacityAllowed);
             System.out.println("Contains file in files? " + this.peer.storage.files.containsKey(newHeader.fileId));
+
+             */
+            System.out.println("Max/Current storage space: " + this.peer.storage.maxCapacityAllowed + "/" + this.peer.storage.occupiedSpace);
 
             if (newHeader.senderId != this.peer.id
                     && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed
@@ -82,48 +85,25 @@ public class MessageHandler {
             break;
 
         case "STORED":
-
-            System.out.println("Márcio is very pretty -> stored" + this.peer.storage);
             if (newHeader.senderId != this.peer.id) {
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
 
+                // ONLY UPDATES IF THE CHUNK IS FROM A FILE STORED IN THIS PEER OR IF IT IS FROM A CHUNK BACKED UP IN THIS PEER
                 if (this.peer.storage.files.containsKey(newHeader.fileId) || this.peer.storage.backedUpChunks.containsKey(chunkId)) {
+                    ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
 
-                    ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation
-                            .computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
-
+                    // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS PRESENT DOES NOTHING)
                     if (!currentChunkStorageList.contains(newHeader.senderId)) {
-
-                        // UPDATES THE LIST OF CHUNKS' LOCATION
                         currentChunkStorageList.add(newHeader.senderId);
-
-                        // INCREASES REPLICATION DEGREE OF STORED CHUNK
-                        // Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree
-                        //         .putIfAbsent(chunkId, 1);
-                        // if (currentReplicationDegree != null) {
-                        //     this.peer.storage.chunksReplicationDegree.replace(chunkId, currentChunkStorageList.size());
-                        // }
-
-                        System.out.println("Márcio is very pretty -> before -> Header" + newHeader);
-                        System.out.println("Márcio is very pretty -> before -> RD" + this.peer.storage.chunksReplicationDegree);
-
-                        this.peer.storage.chunksReplicationDegree.computeIfPresent(chunkId, (k,v)->v+1);
-
-                        this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 1);
-                        
-                        System.out.println("Márcio is very pretty -> after -> Header" + newHeader);
-                        System.out.println(
-                                "Márcio is very pretty -> after -> RD" + this.peer.storage.chunksReplicationDegree);
-
                     }else{
-                        // INCREASES REPLICATION DEGREE OF BACKED UP CHUNK IN FILE MAP
-                        BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
-                        backedUpFile.updateChunk(chunkId);
+                        // IF CHUNK FILE IS PRESENT IN FILE MAP IT INCREASES REPLICATION DEGREE OF THE BACKED UP CHUNK IN THE MAP
+                        if (this.peer.storage.files.containsKey(newHeader.fileId)){
+                            BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
+                            backedUpFile.updateChunk(chunkId);
+                        }
                     }
                 }
             }
-            System.out.println("Márcio is very pretty -> stored" + this.peer.storage);
-
             break;
 
         case "GETCHUNK":
@@ -171,6 +151,7 @@ public class MessageHandler {
                 // FIXME: it isnt leaving
             }
 
+            /*
             // not host recieving chunks -> peer sending chunks -> detected sent chunk in
             // channel -> makes boolean true for a certain ammount of time to avoid sending
             // chunk and overloading the host peer
@@ -192,6 +173,8 @@ public class MessageHandler {
             }
 
             this.peer.recievedChunkMessage = false;
+
+             */
             break;
 
         case "DELETE":
@@ -208,9 +191,6 @@ public class MessageHandler {
                     this.peer.storage.occupiedSpace -= backupChunk.getSize();
 
                     this.peer.storage.backedUpChunks.remove(deleteChunkId);
-
-                    this.peer.storage.chunksReplicationDegree.remove(deleteChunkId);
-
                     this.peer.storage.chunksLocation.remove(deleteChunkId);
 
                     // delete chunks in local storage
@@ -221,22 +201,8 @@ public class MessageHandler {
 
         case "REMOVED":
             String removedChunkId = newHeader.fileId + newHeader.chunkNo;
-            System.out.println("I'm being removed: " + removedChunkId);
-            System.out.println("Márcio é lindo 1: " + this.peer.storage.chunksReplicationDegree);
 
             if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.containsKey(removedChunkId)) {
-
-                // ON RECEIVING REMOVED, PEER UPDATES MAPAS DE PERCEIVED E LOCATION
-
-                System.out.println(removedChunkId);
-                System.out.println("Replication degree before update: "
-                        + this.peer.storage.chunksReplicationDegree.get(removedChunkId));
-
-                this.peer.storage.chunksReplicationDegree.computeIfPresent(removedChunkId, (k, v) -> v - 1);
-                Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.get(removedChunkId);
-
-                System.out.println("Replication degree after update: "
-                        + this.peer.storage.chunksReplicationDegree.get(removedChunkId));
 
                 ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
                 if (locations != null) {
@@ -245,8 +211,7 @@ public class MessageHandler {
 
                 // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK
                 // PARA ESSE CHUNK
-                if (currentReplicationDegree < this.peer.storage.backedUpChunks.get(removedChunkId)
-                        .getDesiredReplicationDegree()) {
+                if (this.peer.storage.chunksLocation.get(removedChunkId).size() < this.peer.storage.backedUpChunks.get(removedChunkId).getDesiredReplicationDegree()) {
                     Header putchunkHeader = new Header(this.peer.version, "PUTCHUNK", this.peer.id, newHeader.fileId,
                             newHeader.chunkNo,
                             this.peer.storage.backedUpChunks.get(removedChunkId).getDesiredReplicationDegree());
@@ -256,9 +221,12 @@ public class MessageHandler {
 
                     PutchunkTask putchunkTask = new PutchunkTask(this.peer, putchunkMessage);
                     putchunkTask.run();
+
+                    Header storeHeader = new Header(this.peer.version, "STORED", this.peer.id, newHeader.fileId, newHeader.chunkNo);
+                    StoreTask storeTask = new StoreTask(this.peer, storeHeader, this.peer.storage.backedUpChunks.get(removedChunkId));
+                    storeTask.run();
                 }
             }
-            System.out.println("Márcio é lindo 2: " + this.peer.storage.chunksReplicationDegree);
 
             break;
 

@@ -51,17 +51,17 @@ public class RemoveAllTask extends Task {
 
                     System.out.println("BEFORE");
                     System.out.println("Chunks location: " + this.peer.storage.chunksLocation);
-                    System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
+                    //System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
                     System.out.println("Chunks backed up: " + this.peer.storage.backedUpChunks);
 
 
                     System.out.println("Chunks location is there: " + this.peer.storage.chunksLocation.containsKey(id));
-                    System.out.println("Chunks rep degree is there: " + this.peer.storage.chunksReplicationDegree.containsKey(id));
+                    //System.out.println("Chunks rep degree is there: " + this.peer.storage.chunksReplicationDegree.containsKey(id));
                     System.out.println("Chunks backed up is there: " + this.peer.storage.backedUpChunks.containsKey(id));
 
                     // APAGAR O FICHEIRO LOCAL
                     this.peer.storage.chunksLocation.remove(id);
-                    this.peer.storage.chunksReplicationDegree.remove(id);
+                    //this.peer.storage.chunksReplicationDegree.remove(id);
                     this.peer.storage.backedUpChunks.remove(id);
 
 
@@ -69,7 +69,7 @@ public class RemoveAllTask extends Task {
 
                     System.out.println("AFTER");
                     System.out.println("Chunks location: " + this.peer.storage.chunksLocation);
-                    System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
+                   // System.out.println("Chunks rep degree: " + this.peer.storage.chunksReplicationDegree);
                     System.out.println("Chunks backed up: " + this.peer.storage.backedUpChunks);
 
 

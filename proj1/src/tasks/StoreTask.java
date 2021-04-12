@@ -24,18 +24,11 @@ public class StoreTask extends Task{
     }
 
     private void backupAndAcknowledge(){
-
         // STORES CHUNK
         this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
 
         // DECREASES PEER STORAGE SPACE
         this.peer.storage.occupiedSpace += this.chunk.body.length;
-
-        // INCREASES REPLICATION DEGREE OF STORED CHUNK
-        Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(this.chunk.id, 1);
-        if (currentReplicationDegree != null){
-            this.peer.storage.chunksReplicationDegree.replace(this.chunk.id, currentReplicationDegree + 1);
-        }
 
         // UPDATES THE LIST OF CHUNKS' LOCATION
         ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(this.chunk.id, value -> new ConcurrentSkipListSet<>());
@@ -57,20 +50,13 @@ public class StoreTask extends Task{
     }
 
     private void backupAndAcknowledgeEnhanced(){
-        if (this.peer.storage.chunksReplicationDegree.get(chunk.id)  == null ||
-                this.peer.storage.chunksReplicationDegree.get(chunk.id) < this.header.replicationDegree){
-
+        if (!this.peer.storage.chunksLocation.containsKey(chunk.id) ||
+                this.peer.storage.chunksLocation.get(chunk.id).size() < this.header.replicationDegree){
             // STORES CHUNK
             this.peer.storage.backedUpChunks.putIfAbsent(this.chunk.id, this.chunk);
 
             //DECREASES PEER STORAGE SPACE
             this.peer.storage.occupiedSpace += this.chunk.body.length;
-
-            // INCREASES REPLICATION DEGREE OF STORED CHUNK
-            Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(this.chunk.id, 1);
-            if (currentReplicationDegree != null){
-                this.peer.storage.chunksReplicationDegree.replace(this.chunk.id, currentReplicationDegree + 1);
-            }
 
             // UPDATES THE LIST OF CHUNKS' LOCATION
             ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation.computeIfAbsent(this.chunk.id, value -> new ConcurrentSkipListSet<>());

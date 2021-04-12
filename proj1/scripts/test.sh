@@ -83,8 +83,8 @@ esac
 java test.TestApp ${pap} ${oper} ${opernd_1} ${rep_deg}
 
 # Examples (to run fom the root of the build tree):
-# ../scripts/test.sh Peer1 BACKUP ../arder.jpg 2
-# ../scripts/test.sh Peer1 RESTORE ../arder.jpg
-# ../scripts/test.sh Peer1 DELETE ../arder.jpg
-# ../scripts/test.sh Peer1 RECLAIM 0 
-# ../scripts/test.sh Peer1 STATE
+# ./../../scripts/test.sh Peer1 BACKUP ../arder.jpg 2
+# ./../../scripts/test.sh Peer1 RESTORE ../arder.jpg
+# ./../../scripts/test.sh Peer1 DELETE ../arder.jpg
+# ./../../scripts/test.sh Peer1 RECLAIM 0
+# ./../../scripts/test.sh Peer1 STATE
