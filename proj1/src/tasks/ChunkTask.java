@@ -26,7 +26,6 @@ public class ChunkTask extends Task{
 
         while(true){
             if(!this.peer.recievedChunkMessage){    // FIXME:  should it have the host ID so I know which host im "overloading"?
-                System.out.println("I can send chunk: peer "+ this.peer.id);
                 sendChunkMessage(messageInBytes);  
                 break;              
             }

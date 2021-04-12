@@ -100,7 +100,7 @@ public class Peer implements RemoteInterface {
     public static void main(String args[]) throws RemoteException, IOException {
 
         if (args.length != 9) {
-            System.out.println("Usage: java Peer <protocol_version> <peer_id> <remote_object_name> <MC_Address> <MC_Port> <MDB_Address> <MDB_Port> <MDR_Address> <MDR_Port>");
+            System.err.println("Usage: java Peer <protocol_version> <peer_id> <remote_object_name> <MC_Address> <MC_Port> <MDB_Address> <MDB_Port> <MDR_Address> <MDR_Port>");
             return;
         }
 

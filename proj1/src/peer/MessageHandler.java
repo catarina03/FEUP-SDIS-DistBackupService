@@ -228,7 +228,7 @@ public class MessageHandler {
             break;
 
         default:
-            System.out.println("Message type " + newHeader.messageType + " not recognized.");
+            System.err.println("Message type " + newHeader.messageType + " not recognized.");
             break;
         }
         return;

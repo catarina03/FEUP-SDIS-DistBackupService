@@ -50,7 +50,7 @@ public class AssembleFileTask extends Task{
                         fc.write(ByteBuffer.wrap(body));
                     }   
                     else {
-                        System.out.println("Chunk doesn't exist\n");
+                        System.err.println("Chunk doesn't exist\n");
                         throw new IOException("Missing chunk");
                     }
                 }
