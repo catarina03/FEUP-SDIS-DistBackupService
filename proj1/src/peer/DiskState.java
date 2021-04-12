@@ -58,8 +58,10 @@ public class DiskState implements Serializable {
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
-                result += "\nChunk " + chunkKey + ": " + backupFile.desiredReplicationDegree;
+                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.desiredReplicationDegree + " - Located At: " + this.chunksLocation
+                        .get(chunkKey);
             }
+            result+="\n";
         }
 
         result += "\n\n---------- BACKED UP CHUNKS OF PEER " + this.peerId + " ----------\n\n";

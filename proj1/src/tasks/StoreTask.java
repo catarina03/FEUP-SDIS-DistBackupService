@@ -74,7 +74,7 @@ public class StoreTask extends Task{
     }
 
     public void run(){
-        if (this.peer.version.equals(this.ENHANCED) && this.header.version.equals(this.ENHANCED)){
+        if (this.peer.version.equals(this.ENHANCED)){
             // ENHANCED VERSION
             Random rand = new Random();
             int upperbound = 401;

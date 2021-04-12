@@ -127,7 +127,7 @@ public class Peer implements RemoteInterface {
         }
 
         // if delete is enhanced
-        if (args[0].equals("1.3")) {
+        if (args[0].equals("2.0")) {
             Header header = new Header(args[0], "HELLO", Integer.parseInt(args[1]));
 
             HelloMessage message = new HelloMessage(header, multichannelscontrol.getMulticastAddress(),
