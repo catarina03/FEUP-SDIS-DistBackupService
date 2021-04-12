@@ -116,7 +116,6 @@ public class Peer implements RemoteInterface {
         Registry registry = getRegistry();
 
         try {
-
             RemoteInterface stub = (RemoteInterface) UnicastRemoteObject.exportObject(peer, 0);
 
             registry.rebind(remoteObjName, stub);
@@ -141,7 +140,7 @@ public class Peer implements RemoteInterface {
     }
 
     @Override
-    public String backUp(String pathname, String degree) {
+    public String backUp(String pathname, String degree){
         String result = "Peer" + id + ": received BACKUP request.";
 
         this.service.execute(() -> {

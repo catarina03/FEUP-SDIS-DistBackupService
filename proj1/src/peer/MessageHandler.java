@@ -217,23 +217,6 @@ public class MessageHandler {
                     this.peer.fileManager.deleteChunkFromDirectory(this.peer.id, newHeader.fileId, backupChunk.chunkNo);
                 }
             }
-            /*
-             * for (int i = 0; i < 10; i++) { String deleteChunkId = newHeader.fileId + i;
-             * 
-             * if (this.peer.storage.backedUpChunks.containsKey(deleteChunkId)) {
-             * this.peer.storage.backedUpChunks.remove(deleteChunkId); }
-             * 
-             * if (this.peer.storage.chunksReplicationDegree.containsKey(deleteChunkId)) {
-             * this.peer.storage.chunksReplicationDegree.remove(deleteChunkId); }
-             * 
-             * if (this.peer.storage.chunksLocation.containsKey(deleteChunkId)) {
-             * this.peer.storage.chunksLocation.remove(deleteChunkId); }
-             * 
-             * // delete chunks in local storage
-             * this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId,
-             * i); }
-             */
-
             break;
 
         case "REMOVED":
@@ -244,10 +227,6 @@ public class MessageHandler {
             if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.containsKey(removedChunkId)) {
 
                 // ON RECEIVING REMOVED, PEER UPDATES MAPAS DE PERCEIVED E LOCATION
-
-                // this.peer.storage.chunksReplicationDegree.replace(removedChunkId,
-                // this.peer.storage.chunksReplicationDegree.get(removedChunkId),
-                // this.peer.storage.chunksReplicationDegree.get(removedChunkId) - 1);
 
                 System.out.println(removedChunkId);
                 System.out.println("Replication degree before update: "
@@ -284,7 +263,23 @@ public class MessageHandler {
             break;
 
         case "HELLO":
-            // FIXME: finish me
+
+            if(this.peer.version.equals("1.3") && newHeader.senderId != this.peer.id){
+
+                System.out.println("I am a peer that recieved an hello and can answer my fellow sleepy peer: " + this.peer.id);
+                System.out.println(
+                        "I have record of all these files to delete " + this.peer.storage.deletedFilesLocation);
+
+                for(String fileId: this.peer.storage.deletedFilesLocation.keySet()){
+                    if(this.peer.storage.deletedFilesLocation.get(fileId).contains(newHeader.senderId)){
+
+                        System.out.println("He has this file, imma send a delete: "+ fileId);
+
+                        Header header = new Header(this.peer.version, "DELETE", this.peer.id, fileId);
+                        this.peer.sendDelete(header);
+                    }
+                }
+            }
             break;
 
         default:

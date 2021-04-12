@@ -39,8 +39,8 @@ public class DiskState implements Serializable {
         this.files = new ConcurrentHashMap<>();
         this.chunksReplicationDegree = new ConcurrentHashMap<>();
         this.chunksLocation = new ConcurrentHashMap<>();
-        this.toBeRestoredChunks=new ConcurrentHashMap<>();
-        this.deletedFilesLocation=new ConcurrentHashMap<>();
+        this.toBeRestoredChunks= new ConcurrentHashMap<>();
+        this.deletedFilesLocation= new ConcurrentHashMap<>();
 
         new File("../peerStorage/peer" + peerId + "/chunks").mkdirs();
         new File("../peerStorage/peer" + peerId + "/files").mkdirs();
