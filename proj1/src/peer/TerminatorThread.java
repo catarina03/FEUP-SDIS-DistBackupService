@@ -4,10 +4,17 @@ public class TerminatorThread implements Runnable{
 
     public Peer peer;
     
+    /**
+     * Constructor of TerminatorThread
+     * @param peer Peer that has the terminator thread
+     */
     public TerminatorThread(Peer peer){
         this.peer = peer;
     }
 
+    /**
+     * Upon SIGINT saves the DiskState information to a .ser file and shutdown peer
+     */
     @Override
     public void run() {
         

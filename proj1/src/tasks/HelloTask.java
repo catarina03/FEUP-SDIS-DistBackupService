@@ -7,19 +7,21 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Random;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class GetChunkTask extends Task {
+public class HelloTask extends Task {
+
     private int tries;
 
     /**
-     * Constructor of GetChunkTask
+     * Constructor of HelloTask
      * 
-     * @param peer    Peer that will run the Task
+     * @param peer    Peer that will run the task
      * @param message Message received
      */
-    public GetChunkTask(Peer peer, Message message) {
+    public HelloTask(Peer peer, Message message) {
         super(peer, message);
         this.tries = 0;
 
@@ -27,7 +29,9 @@ public class GetChunkTask extends Task {
     }
 
     /**
-     * Sends the GETCHUNK message to the multicast channel
+     * Sends the HELLO message to notify other peers that this peer is no longer
+     * asleep (this way they can send it any DELETE messages this peer has missed
+     * while it was asleep)
      */
     public void run() {
         try {
@@ -38,19 +42,20 @@ public class GetChunkTask extends Task {
             socket.joinGroup(InetAddress.getByName(this.message.address));
 
             // sending request
-            DatagramPacket getChunkPacket = new DatagramPacket(messageInBytes, messageInBytes.length,
+            DatagramPacket deletePacket = new DatagramPacket(messageInBytes, messageInBytes.length,
                     InetAddress.getByName(this.message.address), this.message.port);
-            socket.send(getChunkPacket);
+            socket.send(deletePacket);
 
             socket.close();
 
-            if (this.tries < 3) {
-                if (!this.peer.storage.allChunksExist(this.message.header.fileId)) {
-                    scheduler.schedule(this, (long) Math.pow(2, this.tries), TimeUnit.SECONDS);
-                }
+            if (this.tries < 4) {
+                Random rand = new Random();
+                int upperbound = 401;
+                int randomDelay = rand.nextInt(upperbound); // generate random values from 0-400
+
+                scheduler.schedule(this, randomDelay, TimeUnit.MILLISECONDS);
             }
             this.tries++;
-
         } catch (IOException e) {
             e.printStackTrace();
         }

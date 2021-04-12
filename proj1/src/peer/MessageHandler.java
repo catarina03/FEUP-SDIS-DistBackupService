@@ -1,13 +1,13 @@
 package peer;
 
 import files.BackupChunk;
-import files.BackupFile;
 import messages.InvalidMessageException;
+import messages.PutchunkMessage;
 import tasks.StoreTask;
 import tasks.AssembleFileTask;
 import tasks.ChunkTask;
+import tasks.PutchunkTask;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -18,17 +18,26 @@ import java.util.concurrent.TimeUnit;
 public class MessageHandler {
     private static final int NUMBER_OF_WORKERS = 10;
     private Peer peer;
-    protected final String doubleCRLF = "\r\n\r\n";
     public final static byte CR = 0xD;
     public final static byte LF = 0xA;
     private final String ENHANCED = "2.0";
 
+    /**
+     * Constructor of MessageHandler
+     * 
+     * @param peer Peer that has the message handler
+     */
     public MessageHandler(Peer peer) {
         this.peer = peer;
     }
 
-
-    public int getFirstCRLFPosition(byte[] message){
+    /**
+     * Gets the position of the first CRLF byte
+     * 
+     * @param message Message in bytes
+     * @return Position of the first byte
+     */
+    public int getFirstCRLFPosition(byte[] message) {
         int messageLength = message.length;
 
         for (int i = 0; i < messageLength - 3; i++) {
@@ -40,7 +49,14 @@ public class MessageHandler {
         return -1;
     }
 
-
+    /**
+     * Processes message
+     * 
+     * @param message Message received
+     * @param address Adress where message was sent
+     * @param port    Port where message was sent
+     * @throws InvalidMessageException
+     */
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
 
         int firstCRLFPosition = getFirstCRLFPosition(message);
@@ -57,14 +73,15 @@ public class MessageHandler {
         Header newHeader = new Header(headerArray);
         byte[] body = Arrays.copyOfRange(message, firstCRLFPosition + 4, message.length);
 
-
         switch (newHeader.messageType) {
         case "PUTCHUNK":
 
             if (newHeader.senderId != this.peer.id
-                    && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed) {
+                    && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed
+                    && !this.peer.storage.files.containsKey(newHeader.fileId)) {
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
-                BackupChunk newChunk = new BackupChunk(chunkId, body.length, newHeader.replicationDegree, body);
+                BackupChunk newChunk = new BackupChunk(chunkId, newHeader.fileId, newHeader.chunkNo, body.length,
+                        newHeader.replicationDegree, body);
 
                 // CREATES TASK THAT SENDS STORED MESSAGES
                 StoreTask newTask = new StoreTask(this.peer, newHeader, newChunk);
@@ -73,31 +90,35 @@ public class MessageHandler {
             break;
 
         case "STORED":
-
             if (newHeader.senderId != this.peer.id) {
                 String chunkId = newHeader.fileId + newHeader.chunkNo;
 
-                ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation
-                        .computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
-                if (!currentChunkStorageList.contains(newHeader.senderId)) {
+                // ONLY UPDATES IF THE CHUNK IS FROM A FILE STORED IN THIS PEER OR IF IT IS FROM
+                // A CHUNK BACKED UP IN THIS PEER
+                if (this.peer.storage.files.containsKey(newHeader.fileId)
+                        || this.peer.storage.backedUpChunks.containsKey(chunkId)) {
+                    ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation
+                            .computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
 
-                    // INCREASES REPLICATION DEGREE OF STORED CHUNK
-                    Integer currentReplicationDegree = this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId,
-                            1);
-                    if (currentReplicationDegree != null) {
-                        this.peer.storage.chunksReplicationDegree.replace(chunkId, currentReplicationDegree + 1);
+                    // IF CHUNK FILE IS PRESENT IN FILE MAP IT INCREASES REPLICATION DEGREE OF THE
+                    // BACKED UP CHUNK IN THE MAP
+                    if (this.peer.storage.files.containsKey(newHeader.fileId)) {
+                        // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
+                        // PRESENT DOES NOTHING)
+                        if (!currentChunkStorageList.contains(newHeader.senderId)) {
+                            currentChunkStorageList.add(newHeader.senderId);
+                            // BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
+                            // backedUpFile.updateChunk(chunkId);
+                            this.peer.storage.files.get(newHeader.fileId).updateChunk(chunkId);
+                        }
+                    } else {
+                        // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
+                        // PRESENT DOES NOTHING)
+                        if (!currentChunkStorageList.contains(newHeader.senderId)) {
+                            currentChunkStorageList.add(newHeader.senderId);
+                        }
                     }
-
-                    // UPDATES THE LIST OF CHUNKS' LOCATION
-                    currentChunkStorageList.add(newHeader.senderId);
                 }
-
-                if (this.peer.storage.files.containsKey(newHeader.fileId)) {
-                    // INCREASES REPLICATION DEGREE OF BACKED UP CHUNK IN FILE MAP
-                    BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
-                    backedUpFile.updateChunk(chunkId);
-                }
-
             }
             break;
 
@@ -113,20 +134,21 @@ public class MessageHandler {
                         newHeader.chunkNo);
                 ChunkTask chunkTask = new ChunkTask(this.peer, chunkHeader, chunk);
 
-
                 Random rand = new Random();
                 int upperbound = 401;
-                int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-400
+                int randomDelay = rand.nextInt(upperbound); // generate random values from 0-400
 
-                ScheduledThreadPoolExecutor scheduler =  new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
+                ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
                 scheduler.schedule(chunkTask, randomDelay, TimeUnit.MILLISECONDS);
-                //chunkTask.run();
             }
             break;
 
         case "CHUNK":
-            if (this.peer.storage.files.containsKey(newHeader.fileId) && !this.peer.storage.toBeRestoredChunks.containsKey(newHeader.fileId+newHeader.chunkNo)) {
 
+            if (this.peer.storage.files.containsKey(newHeader.fileId)
+                    && !this.peer.storage.toBeRestoredChunks.containsKey(newHeader.fileId + newHeader.chunkNo)) { // host
+                                                                                                                  // receiving
+                                                                                                                  // chunks
                 String chunkChunkId = newHeader.fileId + newHeader.chunkNo;
 
                 // Guardar chunk num mapa de chunk para serem usados em restore
@@ -134,49 +156,110 @@ public class MessageHandler {
 
                 // Criar uma task (?) que vai buscar todos os chunks necessarios e monta o
                 // ficheiro
-                BackupChunk chunkChunk = new BackupChunk(chunkChunkId, body.length, 0, body);
+                BackupChunk chunkChunk = new BackupChunk(chunkChunkId, newHeader.fileId, newHeader.chunkNo, body.length,
+                        0, body);
 
                 AssembleFileTask assembleFileTask = new AssembleFileTask(this.peer, newHeader, chunkChunk);
                 assembleFileTask.run();
+
+                break; // it needs to leave, otherwise it sleeps
+                // FIXME: it isnt leaving
             }
             break;
 
         case "DELETE":
-            // delete file
-            this.peer.storage.files.remove(newHeader.fileId);
 
-            // delete chunks and their references
-            for (int i = 0; i < 10; i++) {
-                String deleteChunkId = newHeader.fileId + i;
+            if (newHeader.senderId != this.peer.id) {
+                // delete file
+                this.peer.storage.files.remove(newHeader.fileId);
 
-                if (this.peer.storage.backedUpChunks.containsKey(deleteChunkId)) {
-                    this.peer.storage.backedUpChunks.remove(deleteChunkId);
-                }
+                // delete file in local storage
+                this.peer.fileManager.deleteFileFromDirectory(this.peer.id, newHeader.fileId);
 
-                if (this.peer.storage.chunksReplicationDegree.containsKey(deleteChunkId)) {
-                    this.peer.storage.chunksReplicationDegree.remove(deleteChunkId);
-                }
+                // delete chunks and their references
+                for (BackupChunk backupChunk : this.peer.storage.backedUpChunks.values()) {
+                    if (backupChunk.fileId.equals(newHeader.fileId)) {
+                        String deleteChunkId = backupChunk.id;
+                        this.peer.storage.occupiedSpace -= backupChunk.getSize();
 
-                if (this.peer.storage.chunksLocation.containsKey(deleteChunkId)) {
-                    this.peer.storage.chunksLocation.remove(deleteChunkId);
+                        this.peer.storage.backedUpChunks.remove(deleteChunkId);
+                        this.peer.storage.chunksLocation.remove(deleteChunkId);
+
+                        // delete chunks in local storage
+                        this.peer.fileManager.deleteChunkFromDirectory(this.peer.id, newHeader.fileId,
+                                backupChunk.chunkNo);
+                    }
                 }
             }
-
             break;
 
         case "REMOVED":
-            // TODO: PASSAR MENSAGEM PARA CLASSE CONCRETA
-            System.out.println("remove");
+            String removedChunkId = newHeader.fileId + newHeader.chunkNo;
+
+            if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.containsKey(removedChunkId)) {
+                ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
+                if (locations != null) {
+                    locations.remove(newHeader.senderId);
+                }
+
+                // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK
+                // PARA ESSE CHUNK
+                if (this.peer.storage.chunksLocation.get(removedChunkId).size() < this.peer.storage.backedUpChunks
+                        .get(removedChunkId).getDesiredReplicationDegree()) {
+                    Header putchunkHeader = new Header(this.peer.version, "PUTCHUNK", this.peer.id, newHeader.fileId,
+                            newHeader.chunkNo,
+                            this.peer.storage.backedUpChunks.get(removedChunkId).getDesiredReplicationDegree());
+                    PutchunkMessage putchunkMessage = new PutchunkMessage(putchunkHeader,
+                            this.peer.storage.backedUpChunks.get(removedChunkId), this.peer.multicastDataBackupAddress,
+                            this.peer.multicastDataBackupPort);
+
+                    PutchunkTask putchunkTask = new PutchunkTask(this.peer, putchunkMessage);
+                    putchunkTask.run();
+
+                    Header storeHeader = new Header(this.peer.version, "STORED", this.peer.id, newHeader.fileId,
+                            newHeader.chunkNo);
+                    StoreTask storeTask = new StoreTask(this.peer, storeHeader,
+                            this.peer.storage.backedUpChunks.get(removedChunkId));
+                    storeTask.run();
+                }
+            }
+
+            // to update locations on initiator peer
+            if (newHeader.senderId != this.peer.id && this.peer.storage.files.containsKey(newHeader.fileId)) {
+                ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
+                if (locations != null) {
+                    locations.remove(newHeader.senderId);
+                }
+                this.peer.storage.files.get(newHeader.fileId).chunks.computeIfPresent(removedChunkId, (k, v) -> v - 1);
+            }
+            break;
+
+        case "HELLO":
+
+            if (this.peer.version.equals(ENHANCED) && newHeader.senderId != this.peer.id) {
+                for (String fileId : this.peer.storage.deletedFilesLocation.keySet()) {
+                    if (this.peer.storage.deletedFilesLocation.get(fileId).contains(newHeader.senderId)) {
+                        Header header = new Header(this.peer.version, "DELETE", this.peer.id, fileId);
+                        this.peer.sendDelete(header);
+                    }
+                }
+            }
             break;
 
         default:
-            System.out.println("Message type " + newHeader.messageType + " not recognized.");
+            System.err.println("Message type " + newHeader.messageType + " not recognized.");
             break;
         }
-
         return;
     }
 
+    /**
+     * Handles message received
+     * 
+     * @param packet  Byte array received as packet
+     * @param address Address where packet came from
+     * @param port    Port where packet came from
+     */
     public void handle(byte[] packet, String address, int port) {
         try {
             this.process(packet, address, port);

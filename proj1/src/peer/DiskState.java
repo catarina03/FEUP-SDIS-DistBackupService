@@ -9,39 +9,50 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DiskState implements Serializable {
     /**
-     *
+     * For serializable implementation
      */
     private static final long serialVersionUID = 1L;
 
     // used to manage disk state and get information
     public int peerId;
-    public long maxCapacityAllowed = 200000;
+    public long maxCapacityAllowed = 200000000;
     public long occupiedSpace;
 
     // chunks & files
     public ConcurrentHashMap<String, BackupChunk> backedUpChunks; // Other's chunks that this peer stored
     public ConcurrentHashMap<String, BackupFile> files; // Own files that initiator peer asked to be backed up
-    public ConcurrentHashMap<String, Integer> chunksReplicationDegree; // This saves the replication degree for each
-                                                                       // chunk I sent/store
     public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> chunksLocation; // This saves the peers where a
                                                                                      // certain sent chunk is
-    public transient ConcurrentHashMap<String, byte[]> toBeRestoredChunks; // This saves the body of the chunks that will be used to
-                                                                      // restore a file
 
+    public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> deletedFilesLocation; // Keeps all the deleted
+                                                                                           // files and their peer
+                                                                                           // location
+
+    public transient ConcurrentHashMap<String, byte[]> toBeRestoredChunks; // This saves the body of the chunks that
+                                                                           // will be used to
+    // restore a file
+
+    /**
+     * Disk State Constructor
+     * @param peerId Peer ID which disk state belongs to
+     */
     public DiskState(int peerId) {
         this.peerId = peerId;
         this.occupiedSpace = 0;
 
         this.backedUpChunks = new ConcurrentHashMap<>();
         this.files = new ConcurrentHashMap<>();
-        this.chunksReplicationDegree = new ConcurrentHashMap<>();
         this.chunksLocation = new ConcurrentHashMap<>();
-        this.toBeRestoredChunks=new ConcurrentHashMap<>();
+        this.toBeRestoredChunks = new ConcurrentHashMap<>();
+        this.deletedFilesLocation = new ConcurrentHashMap<>();
 
-        new File("../peerFiles/peer" + peerId + "/chunks").mkdirs();
-        new File("../peerFiles/peer" + peerId + "/files").mkdirs();
+        new File("../peerStorage/peer" + peerId + "/chunks").mkdirs();
+        new File("../peerStorage/peer" + peerId + "/files").mkdirs();
     }
 
+    /**
+     * Override of method toString to show Disk State contents in a user friendly way
+     */
     @Override
     public String toString() {
         String result;
@@ -54,50 +65,73 @@ public class DiskState implements Serializable {
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
-                result += "\nChunk " + chunkKey + ": " + backupFile.desiredReplicationDegree;
+                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.chunks.get(chunkKey)
+                        + " - Located At: " + this.chunksLocation.get(chunkKey);
             }
+            result += "\n";
         }
 
         result += "\n\n---------- BACKED UP CHUNKS OF PEER " + this.peerId + " ----------\n\n";
         for (String key : this.backedUpChunks.keySet()) {
             BackupChunk backupChunk = this.backedUpChunks.get(key);
 
-            // LOOK 1 - mais compacto
-            /*
-             * result += "ID: " + backupChunk.id + " | Size: " + backupChunk.getSize() +
-             * " | Desired Replication Degree: " + backupChunk.getDesiredReplicationDegree()
-             * + " | Perceived replication degree: " + this.chunksReplicationDegree.get(key)
-             * + "\n";
-             * 
-             */
-
-            // LOOK 2 - mais disperso
             result += "\nID: " + backupChunk.id;
             result += "\nSize: " + backupChunk.getSize();
             result += "\nDesired Replication Degree: " + backupChunk.getDesiredReplicationDegree();
-            result += "\nPerceived replication degree: " + this.chunksReplicationDegree.get(key) + "\n";
+            result += "\nPerceived replication degree: " + this.chunksLocation.get(key).size();
+            result += "\nLocations: " + this.chunksLocation.get(key) + "\n";
         }
+
         return result;
     }
 
+    /**
+     * Gets the location of a file's chunks
+     * @param fileId File ID whose chunks we wish to locate
+     * @return list of locations where chunks of file are stored in
+     */
+    public ConcurrentSkipListSet<Integer> getFileChunksLocation(String fileId) {
+        
+        ConcurrentSkipListSet<Integer> fileLocations = new ConcurrentSkipListSet<>();
+       
+        if (this.files.containsKey(fileId)) {
+            BackupFile file = this.files.get(fileId);
 
-    public int getMaxNumberOfFileChunks(BackupFile backupFile){
+            for (String id : file.chunks.keySet()) {
+                if (this.chunksLocation.containsKey(id)) {
+                    fileLocations.addAll(this.chunksLocation.get(id));
+                }
+            }
+        }
+
+        return fileLocations;
+    }
+
+    /**
+     * Calculates the number of chunks in a file
+     * @param backupFile file to count chunks of
+     * @return number of chunks of backup file
+     */
+    public int getMaxNumberOfFileChunks(BackupFile backupFile) {
         return (int) backupFile.chunks.mappingCount();
     }
 
-    public boolean allChunksExist(String fileId){
+    /**
+     * Verifies if all chunks of file exist
+     * @param fileId file whose chunks were verifying to exist
+     * @return true if all chunks exist, false otherwise
+     */
+    public boolean allChunksExist(String fileId) {
         BackupFile file = this.files.get(fileId);
         int chunkNumber = getMaxNumberOfFileChunks(file);
         int count = 0;
 
-        for (int i = 0; i < chunkNumber; i++){
+        for (int i = 0; i < chunkNumber; i++) {
             String chunkId = file.fileId + i;
-            if (toBeRestoredChunks.get(chunkId) != null){
+            if (toBeRestoredChunks.get(chunkId) != null) {
                 count++;
             }
         }
-
         return chunkNumber == count;
     }
-
 }

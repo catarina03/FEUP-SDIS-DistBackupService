@@ -1,22 +1,25 @@
 package messages;
 
-
-import files.BackupFile;
 import peer.Header;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class StoredMessage extends Message{
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
 
+    /**
+     * Stored Message Constructor
+     * @param header  Message Header
+     * @param address Address where message should be sent
+     * @param port    Port where message should be sent
+     */
     public StoredMessage(Header header, String address, int port) {
         super(header, address, port);
     }
 
+    /**
+     * Converts message to bytes
+     */
     @Override
     public byte[] convertToBytes() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -30,5 +33,4 @@ public class StoredMessage extends Message{
 
         return stream.toByteArray();
     }
-
 }

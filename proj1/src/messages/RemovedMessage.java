@@ -1,22 +1,20 @@
 package messages;
 
 import peer.Header;
-import files.BackupChunk;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class ChunkMessage extends Message {
+public class RemovedMessage extends Message{
 
     /**
-     * Chunk Message Constructor
-     * @param header Message header
-     * @param chunk Chunk to be sent
+     * Removed Message Constructor
+     * @param header  Message Header
      * @param address Address where message should be sent
-     * @param port Port where message should be sent
+     * @param port    Port where message should be sent
      */
-    public ChunkMessage(Header header, BackupChunk chunk, String address, int port) {
-        super(header, chunk, address, port);
+    public RemovedMessage(Header header, String address, int port) {
+        super(header, address, port);
     }
 
     /**
@@ -29,7 +27,6 @@ public class ChunkMessage extends Message {
         try {
             stream.write(header.toString().getBytes());
             stream.write(doubleCRLF.getBytes());
-            stream.write(this.body.body);
         } catch (IOException e) {
             e.printStackTrace();
         }

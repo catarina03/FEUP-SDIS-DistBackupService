@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadRestore implements Runnable {
 
-    private Peer peer;
     private String multicastAddress;
     private int multicastPort;
     private MulticastSocket multicastRestoreSocket;
@@ -18,10 +17,18 @@ public class PeerMultiThreadRestore implements Runnable {
     private MessageHandler messageHandler;
     private final int BUFFER_SIZE = 64000;
 
+    /**
+     * Constructor of PeerMultiThreadRestore
+     * @param peer Owner of this multicast channel
+     * @param version Peer version
+     * @param multicastAddress Address of the restore channel
+     * @param multicastPort Port of the restore channel
+     * @param nThreads number of worker threads of pool
+     * @throws IOException
+     */
     public PeerMultiThreadRestore(Peer peer, String version, String multicastAddress, int multicastPort,
             int nThreads) throws IOException {
 
-        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
         this.messageHandler = new MessageHandler(peer);
@@ -35,17 +42,25 @@ public class PeerMultiThreadRestore implements Runnable {
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
-
+    /**
+     * Getter for multicast address
+     * @return multicast address
+     */
     public String getMulticastAddress() {
         return multicastAddress;
     }
 
-
+    /**
+     * Getter for multicast port
+     * @return multicast port
+     */
     public int getMulticastPort() {
         return multicastPort;
     }
 
-
+    /**
+     * Run method to read messages from channel
+     */
     public void run() {
 
         try {
@@ -67,6 +82,12 @@ public class PeerMultiThreadRestore implements Runnable {
         }
     }
 
+    /**
+     * Message Handler method 
+     * @param packet        packet with message to be handled
+     * @param packetAddress address where packet comes from
+     * @param packetPort    port where packet comes from
+     */
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
