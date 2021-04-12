@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadControl implements Runnable {
 
-    private Peer peer;
     private String multicastAddress;
     private int multicastPort;
     private MulticastSocket multicastControlSocket;
@@ -20,7 +19,6 @@ public class PeerMultiThreadControl implements Runnable {
 
     public PeerMultiThreadControl(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
-        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
         this.messageHandler = new MessageHandler(peer);

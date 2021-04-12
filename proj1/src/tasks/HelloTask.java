@@ -24,7 +24,6 @@ public class HelloTask extends Task {
     
     public void run() {
         try {
-            
             byte[] messageInBytes = this.message.convertToBytes();
             
             MulticastSocket socket = new MulticastSocket(this.message.port);
@@ -45,11 +44,9 @@ public class HelloTask extends Task {
                 
                 scheduler.schedule(this, randomDelay, TimeUnit.MILLISECONDS);
             }
-            
             this.tries++;
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
 }

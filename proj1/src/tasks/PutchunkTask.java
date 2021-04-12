@@ -27,11 +27,6 @@ public class PutchunkTask extends Task{
             byte[] messageInBytes = this.message.convertToBytes();
             String chunkId = message.header.fileId + message.header.chunkNo;
 
-            //this.peer.storage.chunksReplicationDegree.putIfAbsent(chunkId, 0);
-
-            System.out.println("Rep degree in storage: " + this.peer.storage.chunksLocation.get(chunkId));
-            System.out.println("Rep degree in message header: " + message.header.replicationDegree);
-
             if (!this.peer.storage.chunksLocation.containsKey(chunkId) || this.peer.storage.chunksLocation.get(chunkId).size() < message.header.replicationDegree){
                 MulticastSocket socket = new MulticastSocket(this.message.port);
                 socket.setTimeToLive(1);

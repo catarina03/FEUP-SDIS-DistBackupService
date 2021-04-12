@@ -28,16 +28,8 @@ public class BackupFile implements Serializable {
     }
 
     public void updateChunk(String chunkId){
-        System.out.println("THESE ARE MY CHUNKS ON UPDATE 1: " + chunks);
-
         chunks.computeIfPresent(chunkId, (k, v) -> v + 1);
-
-        System.out.println("THESE ARE MY CHUNKS ON UPDATE 2: " + chunks);
-
         chunks.putIfAbsent(chunkId, 1);
-
-        System.out.println("THESE ARE MY CHUNKS ON UPDATE 3: " + chunks);
-
     }
 
     private String generateFileId(String filePath) {

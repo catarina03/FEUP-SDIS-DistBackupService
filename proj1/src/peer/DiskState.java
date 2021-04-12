@@ -24,10 +24,13 @@ public class DiskState implements Serializable {
     public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> chunksLocation; // This saves the peers where a
                                                                                      // certain sent chunk is
 
-    public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> deletedFilesLocation; // Keeps all the deleted files and their peer location
-    
-    public transient ConcurrentHashMap<String, byte[]> toBeRestoredChunks; // This saves the body of the chunks that will be used to
-                                                                      // restore a file
+    public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> deletedFilesLocation; // Keeps all the deleted
+                                                                                           // files and their peer
+                                                                                           // location
+
+    public transient ConcurrentHashMap<String, byte[]> toBeRestoredChunks; // This saves the body of the chunks that
+                                                                           // will be used to
+    // restore a file
 
     public DiskState(int peerId) {
         this.peerId = peerId;
@@ -36,8 +39,8 @@ public class DiskState implements Serializable {
         this.backedUpChunks = new ConcurrentHashMap<>();
         this.files = new ConcurrentHashMap<>();
         this.chunksLocation = new ConcurrentHashMap<>();
-        this.toBeRestoredChunks= new ConcurrentHashMap<>();
-        this.deletedFilesLocation= new ConcurrentHashMap<>();
+        this.toBeRestoredChunks = new ConcurrentHashMap<>();
+        this.deletedFilesLocation = new ConcurrentHashMap<>();
 
         new File("../peerStorage/peer" + peerId + "/chunks").mkdirs();
         new File("../peerStorage/peer" + peerId + "/files").mkdirs();
@@ -55,26 +58,16 @@ public class DiskState implements Serializable {
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
-                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.chunks.get(chunkKey) + " - Located At: " + this.chunksLocation
-                        .get(chunkKey);
+                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.chunks.get(chunkKey)
+                        + " - Located At: " + this.chunksLocation.get(chunkKey);
             }
-            result+="\n";
+            result += "\n";
         }
 
         result += "\n\n---------- BACKED UP CHUNKS OF PEER " + this.peerId + " ----------\n\n";
         for (String key : this.backedUpChunks.keySet()) {
             BackupChunk backupChunk = this.backedUpChunks.get(key);
 
-            // LOOK 1 - mais compacto
-            /*
-             * result += "ID: " + backupChunk.id + " | Size: " + backupChunk.getSize() +
-             * " | Desired Replication Degree: " + backupChunk.getDesiredReplicationDegree()
-             * + " | Perceived replication degree: " + this.chunksReplicationDegree.get(key)
-             * + "\n";
-             * 
-             */
-
-            // LOOK 2 - mais disperso
             result += "\nID: " + backupChunk.id;
             result += "\nSize: " + backupChunk.getSize();
             result += "\nDesired Replication Degree: " + backupChunk.getDesiredReplicationDegree();
@@ -90,38 +83,38 @@ public class DiskState implements Serializable {
             result += "\nIn backup? " + this.backedUpChunks.containsKey(key) + "\n";
         }
 
-
-
         return result;
     }
 
-    
-    public ConcurrentSkipListSet<Integer> getFileChunksLocation(String fileId){
-        BackupFile file = this.files.get(fileId);
-
+    public ConcurrentSkipListSet<Integer> getFileChunksLocation(String fileId) {
+        
         ConcurrentSkipListSet<Integer> fileLocations = new ConcurrentSkipListSet<>();
+       
+        if (this.files.containsKey(fileId)) {
+            BackupFile file = this.files.get(fileId);
 
-        for(String id: file.chunks.keySet()){
-            if(this.chunksLocation.containsKey(id)){
-                fileLocations.addAll(this.chunksLocation.get(id));
+            for (String id : file.chunks.keySet()) {
+                if (this.chunksLocation.containsKey(id)) {
+                    fileLocations.addAll(this.chunksLocation.get(id));
+                }
             }
         }
 
         return fileLocations;
     }
 
-    public int getMaxNumberOfFileChunks(BackupFile backupFile){
+    public int getMaxNumberOfFileChunks(BackupFile backupFile) {
         return (int) backupFile.chunks.mappingCount();
     }
 
-    public boolean allChunksExist(String fileId){
+    public boolean allChunksExist(String fileId) {
         BackupFile file = this.files.get(fileId);
         int chunkNumber = getMaxNumberOfFileChunks(file);
         int count = 0;
 
-        for (int i = 0; i < chunkNumber; i++){
+        for (int i = 0; i < chunkNumber; i++) {
             String chunkId = file.fileId + i;
-            if (toBeRestoredChunks.get(chunkId) != null){
+            if (toBeRestoredChunks.get(chunkId) != null) {
                 count++;
             }
         }

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Random;
 
 public class ChunkTask extends Task{
     private final String ENHANCED = "2.0";

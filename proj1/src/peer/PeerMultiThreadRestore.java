@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadRestore implements Runnable {
 
-    private Peer peer;
     private String multicastAddress;
     private int multicastPort;
     private MulticastSocket multicastRestoreSocket;
@@ -21,7 +20,6 @@ public class PeerMultiThreadRestore implements Runnable {
     public PeerMultiThreadRestore(Peer peer, String version, String multicastAddress, int multicastPort,
             int nThreads) throws IOException {
 
-        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
         this.messageHandler = new MessageHandler(peer);

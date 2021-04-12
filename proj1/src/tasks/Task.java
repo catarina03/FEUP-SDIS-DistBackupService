@@ -15,7 +15,6 @@ public abstract class Task implements Runnable{
     protected ScheduledThreadPoolExecutor scheduler;
     protected final int NUMBER_OF_WORKERS = 5;
 
-    //BACKUP TASK
     public Task(Message message) {
         this.message = message;
     }

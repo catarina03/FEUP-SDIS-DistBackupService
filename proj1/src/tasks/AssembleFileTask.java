@@ -20,7 +20,6 @@ public class AssembleFileTask extends Task{
 
     public AssembleFileTask(Peer peer, Header header, BackupChunk chunk) {
         super(peer, header, chunk);
-
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
@@ -57,7 +56,6 @@ public class AssembleFileTask extends Task{
                 }
 
                 fc.close();
-
                 fileOutputStream.flush();
                 fileOutputStream.close();
             } catch (IOException e) {

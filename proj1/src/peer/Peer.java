@@ -10,7 +10,6 @@ import messages.GetChunkMessage;
 import rmi.RemoteInterface;
 import tasks.PutchunkTask;
 import tasks.RemovedTask;
-import tasks.RemovedTask;
 import tasks.RemoveAllTask;
 import tasks.DeleteTask;
 import tasks.HelloTask;
@@ -34,7 +33,8 @@ public class Peer implements RemoteInterface {
     public DiskState storage;
     public FileManager fileManager;
 
-    public int MAX_SIZE_CHUNK = 64000; // in bytes
+    private static final String ENHANCED = "2.0";
+    private static int MAX_SIZE_CHUNK = 64000; // in bytes
     private static final int NUMBER_OF_WORKERS_SENDING = 10;
     private static final int NUMBER_OF_WORKERS_PROCESSING = 15;
 
@@ -63,7 +63,6 @@ public class Peer implements RemoteInterface {
         this.storage = new DiskState(this.id);
 
         this.fileManager.recoverState();
-        // this.fileManager.updateState();
 
         this.multicastControlAddress = mcAddress;
         this.multicastControlPort = Integer.parseInt(mcPort.trim());
@@ -109,8 +108,6 @@ public class Peer implements RemoteInterface {
 
         String remoteObjName = args[2];
 
-        // TODO: check state and update every few secs to keep storage updated
-
         // connect to RMI
         Registry registry = getRegistry();
 
@@ -127,7 +124,7 @@ public class Peer implements RemoteInterface {
         }
 
         // if delete is enhanced
-        if (args[0].equals("2.0")) {
+        if (args[0].equals(ENHANCED)) {
             Header header = new Header(args[0], "HELLO", Integer.parseInt(args[1]));
 
             HelloMessage message = new HelloMessage(header, multichannelscontrol.getMulticastAddress(),
@@ -181,7 +178,6 @@ public class Peer implements RemoteInterface {
     }
 
     public void sendPutChunk(BackupChunk chunk, Header header) {
-
         PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(),
                 multichannelsbackup.getMulticastPort());
         PutchunkTask backupTask = new PutchunkTask(this, message);
@@ -207,7 +203,6 @@ public class Peer implements RemoteInterface {
             Header header = new Header(this.version, "DELETE", this.id, systemFile.fileId);
             sendDelete(header);
         });
-
         return result;
     }
 
@@ -240,7 +235,6 @@ public class Peer implements RemoteInterface {
                 getChunkTask.run();
             }
         });
-
         return result;
     }
 
@@ -256,26 +250,9 @@ public class Peer implements RemoteInterface {
 
                 if (maxDiskSpace >= this.storage.maxCapacityAllowed){
                     this.storage.maxCapacityAllowed = maxDiskSpace;
-                    System.out.println("Storage capacity upgraded to: " + maxDiskSpace);
                 }
                 else {
-                    //if maxdiskspace == 0 delete everything
-
-                    //CHECK PEER STORAGE TO REMOVE ENOUGH CHUNKS TO FREE SPACE
-                    // (ALGORITHM: REMOVER O CHUNK (OU CHUNKS) MAIS PEQUENO QUE CONSIGA LIBERTAR O ESPAÇO PEDIDO, MINIMO NUMERO DE CHUNKS)
-
-                    //ATUALIZAR MAPAS E ESPAÇOS
-                    //SEND REMOVED FOR EACH DELETED CHUNK
-
-                    System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
-
-                    System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-                    System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
-
                     this.storage.maxCapacityAllowed = maxDiskSpace;
-
-                    System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-                    System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
 
                     if(maxDiskSpace!=0){
                         RemovedTask task = new RemovedTask(this, maxDiskSpace);
@@ -284,18 +261,10 @@ public class Peer implements RemoteInterface {
                         RemoveAllTask task = new RemoveAllTask(this);
                         task.run();
                     }
-
-                    // ON RECEIVING REMOVED, PEER UPDATES MAPAS
-                    // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK
-
-                    //this.storage.maxCapacityAllowed = maxDiskSpace;
                 }
-
             }
         );
-
         return result;
-
     }
 
     @Override
@@ -321,8 +290,6 @@ public class Peer implements RemoteInterface {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-
         return registry;
     }
-
 }

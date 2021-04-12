@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 public class PeerMultiThreadBackup implements Runnable {
 
-    private Peer peer;
     private String multicastAddress;
     private int multicastPort;
     private MulticastSocket multicastBackupSocket;
@@ -20,7 +19,6 @@ public class PeerMultiThreadBackup implements Runnable {
 
     public PeerMultiThreadBackup(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
-        this.peer = peer;
         this.multicastAddress = multicastAddress;
         this.multicastPort = multicastPort;
         this.messageHandler = new MessageHandler(peer);

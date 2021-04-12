@@ -1,7 +1,6 @@
 package peer;
 
 import files.BackupChunk;
-import files.BackupFile;
 import messages.InvalidMessageException;
 import messages.PutchunkMessage;
 import tasks.StoreTask;
@@ -19,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 public class MessageHandler {
     private static final int NUMBER_OF_WORKERS = 10;
     private Peer peer;
-    // protected final String doubleCRLF = "\r\n\r\n";
     public final static byte CR = 0xD;
     public final static byte LF = 0xA;
     private final String ENHANCED = "2.0";
@@ -58,8 +56,6 @@ public class MessageHandler {
 
         switch (newHeader.messageType) {
         case "PUTCHUNK":
-            System.out.println("Max/Current storage space: " + this.peer.storage.maxCapacityAllowed + "/"
-                    + this.peer.storage.occupiedSpace);
 
             if (newHeader.senderId != this.peer.id
                     && this.peer.storage.occupiedSpace + body.length <= this.peer.storage.maxCapacityAllowed
@@ -94,14 +90,9 @@ public class MessageHandler {
                             currentChunkStorageList.add(newHeader.senderId);
                             // BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
                             // backedUpFile.updateChunk(chunkId);
-                            System.out.println(
-                                    "THESE ARE MY CHUNKS: " + this.peer.storage.files.get(newHeader.fileId).chunks);
                             this.peer.storage.files.get(newHeader.fileId).updateChunk(chunkId);
-                            System.out.println("THESE ARE MY CHUNKS AFTER UPDATE: "
-                                    + this.peer.storage.files.get(newHeader.fileId).chunks);
                         }
-
-                    }else{
+                    } else {
                         // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
                         // PRESENT DOES NOTHING)
                         if (!currentChunkStorageList.contains(newHeader.senderId)) {
@@ -130,7 +121,6 @@ public class MessageHandler {
 
                 ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
                 scheduler.schedule(chunkTask, randomDelay, TimeUnit.MILLISECONDS);
-                // chunkTask.run();
             }
             break;
 
@@ -188,7 +178,6 @@ public class MessageHandler {
             String removedChunkId = newHeader.fileId + newHeader.chunkNo;
 
             if (newHeader.senderId != this.peer.id && this.peer.storage.backedUpChunks.containsKey(removedChunkId)) {
-
                 ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
                 if (locations != null) {
                     locations.remove(newHeader.senderId);
@@ -222,26 +211,15 @@ public class MessageHandler {
                 if (locations != null) {
                     locations.remove(newHeader.senderId);
                 }
-
-                this.peer.storage.files.get(newHeader.fileId).chunks.computeIfPresent(removedChunkId, (k,v)->v-1);
+                this.peer.storage.files.get(newHeader.fileId).chunks.computeIfPresent(removedChunkId, (k, v) -> v - 1);
             }
-
             break;
 
         case "HELLO":
 
-            if (this.peer.version.equals("2.0") && newHeader.senderId != this.peer.id) {
-
-                System.out.println(
-                        "I am a peer that recieved an hello and can answer my fellow sleepy peer: " + this.peer.id);
-                System.out.println(
-                        "I have record of all these files to delete " + this.peer.storage.deletedFilesLocation);
-
+            if (this.peer.version.equals(ENHANCED) && newHeader.senderId != this.peer.id) {
                 for (String fileId : this.peer.storage.deletedFilesLocation.keySet()) {
                     if (this.peer.storage.deletedFilesLocation.get(fileId).contains(newHeader.senderId)) {
-
-                        System.out.println("He has this file, imma send a delete: " + fileId);
-
                         Header header = new Header(this.peer.version, "DELETE", this.peer.id, fileId);
                         this.peer.sendDelete(header);
                     }
