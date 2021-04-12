@@ -19,56 +19,77 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-public class RemovedTask extends Task{
+public class RemovedTask extends Task {
     private int tries;
-    private int space; //FIXME: erase space from here and everywhere
+    private int space; // FIXME: erase space from here and everywhere
     private Header header;
     private RemovedMessage message;
 
+    /**
+     * Constructor of RemovedTask
+     * 
+     * @param peer  Peer that will run the task
+     * @param space New maximum space
+     */
     public RemovedTask(Peer peer, int space) {
         this.peer = peer;
         this.tries = 0;
-        this.space=space;
-        
+        this.space = space;
 
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
-    private ArrayList<String> sortingAlgorithm(){
+    /**
+     * Sorts all chunks in a peer by the ones that habe a bigger difference between
+     * current replication degree and desired replication degree
+     * 
+     * @return ArrayList of sorted chunk ids
+     */
+    private ArrayList<String> sortingAlgorithm() {
 
         Map<String, Integer> extraReplicationMap = new LinkedHashMap<>();
-        for (ConcurrentHashMap.Entry<String, ConcurrentSkipListSet<Integer>> e : this.peer.storage.chunksLocation.entrySet()) {
-            extraReplicationMap.put(e.getKey(), e.getValue().size() - this.peer.storage.backedUpChunks.get(e.getKey()).getDesiredReplicationDegree());
+        for (ConcurrentHashMap.Entry<String, ConcurrentSkipListSet<Integer>> e : this.peer.storage.chunksLocation
+                .entrySet()) {
+            extraReplicationMap.put(e.getKey(), e.getValue().size()
+                    - this.peer.storage.backedUpChunks.get(e.getKey()).getDesiredReplicationDegree());
         }
-        
+
         List<Map.Entry<String, Integer>> extraReplicationList = new LinkedList<>(extraReplicationMap.entrySet());
         Collections.sort(extraReplicationList, new Comparator<Map.Entry<String, Integer>>() {
-          public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-            return o2.getValue() - o1.getValue();
-          }
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue() - o1.getValue();
+            }
         });
 
         ArrayList<String> result = new ArrayList<>();
         for (Map.Entry<String, Integer> e : extraReplicationList) {
             result.add(e.getKey());
         }
-    
+
         return result;
     }
 
+    /**
+     * Deletes the chunks necessary to reclaim the need space and sends the REMOVED
+     * messages
+     */
     public void run() {
-        
+
         try {
-            if (this.peer.storage.occupiedSpace > this.peer.storage.maxCapacityAllowed){
+            if (this.peer.storage.occupiedSpace > this.peer.storage.maxCapacityAllowed) {
                 ArrayList<String> sortedChunkIds = new ArrayList<>();
 
                 sortedChunkIds = sortingAlgorithm();
 
-                this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).getSize();
+                this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0))
+                        .getSize();
 
                 // make message
-                this.header = new Header(this.peer.version, "REMOVED", this.peer.id, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).fileId, this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).chunkNo);
-                this.message = new RemovedMessage(header, this.peer.multicastControlAddress, this.peer.multicastControlPort);
+                this.header = new Header(this.peer.version, "REMOVED", this.peer.id,
+                        this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).fileId,
+                        this.peer.storage.backedUpChunks.get(sortedChunkIds.get(0)).chunkNo);
+                this.message = new RemovedMessage(header, this.peer.multicastControlAddress,
+                        this.peer.multicastControlPort);
 
                 // APAGAR O FICHEIRO LOCAL
                 this.peer.storage.chunksLocation.remove(sortedChunkIds.get(0));
@@ -76,23 +97,22 @@ public class RemovedTask extends Task{
 
                 this.peer.fileManager.deleteChunkFromDirectory(this.peer.id, this.header.fileId, this.header.chunkNo);
 
-    /* FIXME
-                if (this.tries < 3) {
-                    Random rand = new Random();
-                    int upperbound = 401;
-                    int randomDelay = rand.nextInt(upperbound);   //generate random values from 0-400
-
-
-                    scheduler.schedule(this, randomDelay, TimeUnit.MILLISECONDS);
-
-
-                    //Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);
-
-                    //this.workerService.execute(processMessage);
-                }
-
-                this.tries++;
-                */
+                /*
+                 * FIXME if (this.tries < 3) { Random rand = new Random(); int upperbound = 401;
+                 * int randomDelay = rand.nextInt(upperbound); //generate random values from
+                 * 0-400
+                 * 
+                 * 
+                 * scheduler.schedule(() -> run(), randomDelay, TimeUnit.MILLISECONDS);
+                 * 
+                 * 
+                 * //Runnable processMessage = () -> this.messageHandler.handle(packet,
+                 * packetAddress, packetPort);
+                 * 
+                 * //this.workerService.execute(processMessage); }
+                 * 
+                 * this.tries++;
+                 */
 
                 byte[] messageInBytes = message.convertToBytes();
 
@@ -100,15 +120,15 @@ public class RemovedTask extends Task{
                 MulticastSocket socket = new MulticastSocket(message.port);
                 socket.setTimeToLive(1);
                 socket.joinGroup(group);
-    
+
                 // sending request
                 DatagramPacket removedPacket = new DatagramPacket(messageInBytes, messageInBytes.length,
                         InetAddress.getByName(message.address), message.port);
                 socket.send(removedPacket);
-    
+
                 socket.close();
 
-                if (this.peer.storage.occupiedSpace > this.peer.storage.maxCapacityAllowed){
+                if (this.peer.storage.occupiedSpace > this.peer.storage.maxCapacityAllowed) {
                     this.run();
                 }
             }

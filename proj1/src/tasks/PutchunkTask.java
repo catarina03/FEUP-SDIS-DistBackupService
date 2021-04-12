@@ -14,6 +14,11 @@ public class PutchunkTask extends Task{
 
     private int tries;
 
+    /**
+     * Constructor of PutchunkTask
+     * @param peer Peer that will run the task
+     * @param message Message received
+     */
     public PutchunkTask(Peer peer, Message message) {
         super(peer, message);
         this.tries = 0;
@@ -21,6 +26,9 @@ public class PutchunkTask extends Task{
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
+    /**
+     * Sends PUTCHUNK message a maximum of 5 times or until it receives STORED messages for all chunks
+     */
     public void run(){
         try {
 

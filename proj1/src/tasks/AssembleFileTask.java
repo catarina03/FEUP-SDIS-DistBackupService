@@ -15,41 +15,57 @@ import java.util.Arrays;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class AssembleFileTask extends Task{
+public class AssembleFileTask extends Task {
     private final String ENHANCED = "2.0";
 
+    /**
+     * Constructor of AssembleFileTask
+     * 
+     * @param peer   Peer that will run the task
+     * @param header Header received
+     * @param chunk  Chunk received
+     */
     public AssembleFileTask(Peer peer, Header header, BackupChunk chunk) {
         super(peer, header, chunk);
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
-    private String trimPath(String pathname){
+    /**
+     * Removes pathname before the actual filename
+     * 
+     * @param pathname File pathname to be trimmed
+     * @return Trimmed pathname
+     */
+    private String trimPath(String pathname) {
         ArrayList<String> pathnameArray = new ArrayList<>(Arrays.asList(pathname.split("/")));
         return pathnameArray.get(pathnameArray.size() - 1);
     }
 
-    public void run(){
+    /**
+     * Restored the file passed in the message header
+     */
+    public void run() {
 
         BackupFile backupFile = this.peer.storage.files.get(this.header.fileId);
 
-        if (this.peer.storage.allChunksExist(backupFile.fileId)){
+        if (this.peer.storage.allChunksExist(backupFile.fileId)) {
 
-            //make file
+            // make file
             int chunkNumber = this.peer.storage.getMaxNumberOfFileChunks(backupFile);
 
-            File restoredFile = new File("../peerStorage/peer" + this.peer.id + "/restored_" + trimPath(backupFile.pathname));
+            File restoredFile = new File(
+                    "../peerStorage/peer" + this.peer.id + "/restored_" + trimPath(backupFile.pathname));
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(restoredFile);
                 FileChannel fc = fileOutputStream.getChannel();
 
-                for (int i = 0; i < chunkNumber; i++){
+                for (int i = 0; i < chunkNumber; i++) {
                     String chunkId = backupFile.fileId + i;
                     byte[] body = this.peer.storage.toBeRestoredChunks.get(chunkId);
 
-                    if (body != null){
+                    if (body != null) {
                         fc.write(ByteBuffer.wrap(body));
-                    }   
-                    else {
+                    } else {
                         System.err.println("Chunk doesn't exist\n");
                         throw new IOException("Missing chunk");
                     }
@@ -62,7 +78,8 @@ public class AssembleFileTask extends Task{
                 e.printStackTrace();
             }
 
-            RemoveRestoredChunksTask removeRestoredChunksTask = new RemoveRestoredChunksTask(this.peer, this.header, this.chunk);
+            RemoveRestoredChunksTask removeRestoredChunksTask = new RemoveRestoredChunksTask(this.peer, this.header,
+                    this.chunk);
             this.scheduler.schedule(removeRestoredChunksTask, 10, TimeUnit.SECONDS);
         }
     }

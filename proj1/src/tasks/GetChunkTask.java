@@ -10,9 +10,15 @@ import java.net.MulticastSocket;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class GetChunkTask extends Task{
+public class GetChunkTask extends Task {
     private int tries;
 
+    /**
+     * Constructor of GetChunkTask
+     * 
+     * @param peer    Peer that will run the Task
+     * @param message Message received
+     */
     public GetChunkTask(Peer peer, Message message) {
         super(peer, message);
         this.tries = 0;
@@ -20,6 +26,9 @@ public class GetChunkTask extends Task{
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
+    /**
+     * Sends the GETCHUNK message to the multicast channel
+     */
     public void run() {
         try {
             byte[] messageInBytes = this.message.convertToBytes();
@@ -36,12 +45,12 @@ public class GetChunkTask extends Task{
             socket.close();
 
             if (this.tries < 3) {
-                if (!this.peer.storage.allChunksExist(this.message.header.fileId)){
+                if (!this.peer.storage.allChunksExist(this.message.header.fileId)) {
                     scheduler.schedule(this, (long) Math.pow(2, this.tries), TimeUnit.SECONDS);
                 }
             }
             this.tries++;
-            
+
         } catch (IOException e) {
             e.printStackTrace();
         }

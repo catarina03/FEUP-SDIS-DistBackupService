@@ -15,20 +15,27 @@ public class RemoveAllTask extends Task {
     private Header header;
     private RemovedMessage message;
 
+    /**
+     * Constructor of RemoveAllTask
+     * 
+     * @param peer Peer that will run the task
+     */
     public RemoveAllTask(Peer peer) {
         this.peer = peer;
 
         this.scheduler = new ScheduledThreadPoolExecutor(NUMBER_OF_WORKERS);
     }
 
+    /**
+     * Removes all chunks from a peer and sends REMOVED messages
+     */
     public void run() {
 
         try {
             if (this.peer.storage.occupiedSpace > this.peer.storage.maxCapacityAllowed) {
                 for (String id : this.peer.storage.backedUpChunks.keySet()) {
 
-                    this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(id)
-                            .getSize();
+                    this.peer.storage.occupiedSpace -= this.peer.storage.backedUpChunks.get(id).getSize();
 
                     // make message
                     this.header = new Header(this.peer.version, "REMOVED", this.peer.id,

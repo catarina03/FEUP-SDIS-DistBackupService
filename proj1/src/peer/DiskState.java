@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DiskState implements Serializable {
     /**
-     *
+     * For serializable implementation
      */
     private static final long serialVersionUID = 1L;
 
@@ -32,6 +32,10 @@ public class DiskState implements Serializable {
                                                                            // will be used to
     // restore a file
 
+    /**
+     * Disk State Constructor
+     * @param peerId Peer ID which disk state belongs to
+     */
     public DiskState(int peerId) {
         this.peerId = peerId;
         this.occupiedSpace = 0;
@@ -46,6 +50,9 @@ public class DiskState implements Serializable {
         new File("../peerStorage/peer" + peerId + "/files").mkdirs();
     }
 
+    /**
+     * Override of method toString to show Disk State contents in a user friendly way
+     */
     @Override
     public String toString() {
         String result;
@@ -75,17 +82,14 @@ public class DiskState implements Serializable {
             result += "\nLocations: " + this.chunksLocation.get(key) + "\n";
         }
 
-        result += "\n\n---------- LOCATION CHUNKS OF PEER " + this.peerId + " ----------\n\n";
-        for (String key : this.chunksLocation.keySet()) {
-            result += "\nID: " + key;
-            result += "\nPerceived replication degree: " + this.chunksLocation.get(key).size();
-            result += "\nLocations: " + this.chunksLocation.get(key);
-            result += "\nIn backup? " + this.backedUpChunks.containsKey(key) + "\n";
-        }
-
         return result;
     }
 
+    /**
+     * Gets the location of a file's chunks
+     * @param fileId File ID whose chunks we wish to locate
+     * @return list of locations where chunks of file are stored in
+     */
     public ConcurrentSkipListSet<Integer> getFileChunksLocation(String fileId) {
         
         ConcurrentSkipListSet<Integer> fileLocations = new ConcurrentSkipListSet<>();
@@ -103,10 +107,20 @@ public class DiskState implements Serializable {
         return fileLocations;
     }
 
+    /**
+     * Calculates the number of chunks in a file
+     * @param backupFile file to count chunks of
+     * @return number of chunks of backup file
+     */
     public int getMaxNumberOfFileChunks(BackupFile backupFile) {
         return (int) backupFile.chunks.mappingCount();
     }
 
+    /**
+     * Verifies if all chunks of file exist
+     * @param fileId file whose chunks were verifying to exist
+     * @return true if all chunks exist, false otherwise
+     */
     public boolean allChunksExist(String fileId) {
         BackupFile file = this.files.get(fileId);
         int chunkNumber = getMaxNumberOfFileChunks(file);

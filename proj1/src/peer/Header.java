@@ -11,7 +11,16 @@ public class Header {
     public int chunkNo;
     public int replicationDegree;
 
-    // PUTCHUNK
+    /**
+     * Constructor of the PUTCHUNK Header
+     * 
+     * @param version           Message version
+     * @param messageType       Message type
+     * @param senderId          ID of the peer sending
+     * @param fileId            ID of the file the chunk belongs to
+     * @param chunkNo           Number of the chunk of the file
+     * @param replicationDegree Replication degree of the chunk
+     */
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo, int replicationDegree) {
         this.version = version;
         this.messageType = messageType;
@@ -21,7 +30,15 @@ public class Header {
         this.replicationDegree = replicationDegree;
     }
 
-    // STORED, GETCHUNK, CHUNK AND REMOVED HEADER
+    /**
+     * Constructor of the STORED, GETCHUNK, CHUNK AND REMOVED Headers
+     * 
+     * @param version     Message version
+     * @param messageType Message type
+     * @param senderId    ID of the peer sending
+     * @param fileId      ID of the file the chunk belongs to
+     * @param chunkNo     Number of the chunk of the file
+     */
     public Header(String version, String messageType, int senderId, String fileId, int chunkNo) {
         this.version = version;
         this.messageType = messageType;
@@ -30,7 +47,14 @@ public class Header {
         this.chunkNo = chunkNo;
     }
 
-    // DELETE Header
+    /**
+     * Constructor of the DELETED Header
+     * 
+     * @param version     Message version
+     * @param messageType Message type
+     * @param senderId    ID of the peer sending
+     * @param fileId      ID of the file to be deleted
+     */
     public Header(String version, String messageType, int senderId, String fileId) {
         this.version = version;
         this.messageType = messageType;
@@ -38,13 +62,24 @@ public class Header {
         this.fileId = fileId;
     }
 
-    // HELLO Header
+    /**
+     * Constructor of the HELLO Header
+     * 
+     * @param version     Message version
+     * @param messageType Message type
+     * @param senderId    ID of the peer sending
+     */
     public Header(String version, String messageType, int senderId) {
         this.version = version;
         this.messageType = messageType;
         this.senderId = senderId;
     }
 
+    /**
+     * Constructor of he Header
+     * 
+     * @param array Header in the form of ArrayList
+     */
     public Header(ArrayList<String> array) {
         // Header PUTCHUNK
         if (array.size() == 6) {
@@ -74,23 +109,36 @@ public class Header {
         }
     }
 
+    /**
+     * Setter for the Message version
+     * 
+     * @param version Message version
+     */
     public void setVersion(String version) {
         this.version = version;
     }
 
+    /**
+     * Converts to String
+     */
     @Override
     public String toString() {
         if (messageType.equals("PUTCHUNK")) {
             return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo + " "
                     + replicationDegree;
         }
-        if (messageType.equals("DELETE")){
-            return version + " " + messageType + " " + senderId + " " + fileId; 
+        if (messageType.equals("DELETE")) {
+            return version + " " + messageType + " " + senderId + " " + fileId;
         }
-        return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo;  // STORED, GETCHUNK, CHUNK
+        return version + " " + messageType + " " + senderId + " " + fileId + " " + chunkNo; // STORED, GETCHUNK, CHUNK
                                                                                             // AND REMOVED
     }
 
+    /**
+     * Get size of header in bytes
+     * 
+     * @return size of header in bytes
+     */
     public int getSizeInBytes() {
         String header = this.toString();
         byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);

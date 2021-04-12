@@ -17,6 +17,16 @@ public class PeerMultiThreadBackup implements Runnable {
     private MessageHandler messageHandler;
     private final int BUFFER_SIZE = 64000;
 
+    /**
+     * Constructor of PeerMultiThreadBackup
+     * 
+     * @param peer             Owner of this multicast channel
+     * @param version          Peer version
+     * @param multicastAddress Address of the backup channel
+     * @param multicastPort    Port of the backup channel
+     * @param nThreads         number of worker threads of pool
+     * @throws IOException
+     */
     public PeerMultiThreadBackup(Peer peer, String version, String multicastAddress, int multicastPort, int nThreads) throws IOException {
 
         this.multicastAddress = multicastAddress;
@@ -32,14 +42,25 @@ public class PeerMultiThreadBackup implements Runnable {
         this.workerService = Executors.newFixedThreadPool(nThreads);
     }
 
+    /**
+     * Getter for multicast address
+     * @return multicast address
+     */
     public String getMulticastAddress() {
         return multicastAddress;
     }
 
+    /**
+     * Getter for multicast port
+     * @return multicast port
+     */
     public int getMulticastPort() {
         return multicastPort;
     }
 
+    /**
+     * Run method to read messages from channel
+     */
     public void run() {
         
         try {
@@ -62,6 +83,13 @@ public class PeerMultiThreadBackup implements Runnable {
 
     }
 
+    /**
+     * Message Handler method
+     * 
+     * @param packet        packet with message to be handled
+     * @param packetAddress address where packet comes from
+     * @param packetPort    port where packet comes from
+     */
     public void handleMessage(byte[] packet, String packetAddress, int packetPort) {
 
         Runnable processMessage = () -> this.messageHandler.handle(packet, packetAddress, packetPort);

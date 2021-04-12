@@ -22,10 +22,21 @@ public class MessageHandler {
     public final static byte LF = 0xA;
     private final String ENHANCED = "2.0";
 
+    /**
+     * Constructor of MessageHandler
+     * 
+     * @param peer Peer that has the message handler
+     */
     public MessageHandler(Peer peer) {
         this.peer = peer;
     }
 
+    /**
+     * Gets the position of the first CRLF byte
+     * 
+     * @param message Message in bytes
+     * @return Position of the first byte
+     */
     public int getFirstCRLFPosition(byte[] message) {
         int messageLength = message.length;
 
@@ -38,6 +49,14 @@ public class MessageHandler {
         return -1;
     }
 
+    /**
+     * Processes message
+     * 
+     * @param message Message received
+     * @param address Adress where message was sent
+     * @param port    Port where message was sent
+     * @throws InvalidMessageException
+     */
     public void process(byte[] message, String address, int port) throws InvalidMessageException {
 
         int firstCRLFPosition = getFirstCRLFPosition(message);
@@ -234,6 +253,13 @@ public class MessageHandler {
         return;
     }
 
+    /**
+     * Handles message received
+     * 
+     * @param packet  Byte array received as packet
+     * @param address Address where packet came from
+     * @param port    Port where packet came from
+     */
     public void handle(byte[] packet, String address, int port) {
         try {
             this.process(packet, address, port);

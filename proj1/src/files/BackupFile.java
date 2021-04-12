@@ -11,7 +11,7 @@ import java.security.MessageDigest;
 
 public class BackupFile implements Serializable {
     /**
-     *
+     * For serializable implementation
      */
     private static final long serialVersionUID = 1L;
 
@@ -20,6 +20,11 @@ public class BackupFile implements Serializable {
     public int desiredReplicationDegree;
     public ConcurrentHashMap<String, Integer> chunks;
 
+    /**
+     * BackupFile Constructor
+     * @param pathname file's path
+     * @param desiredReplicationDegree desired replication degree for all chunks of this backup file
+     */
     public BackupFile(String pathname, int desiredReplicationDegree) {
         this.pathname = pathname;
         this.fileId = generateFileId(pathname);
@@ -27,11 +32,19 @@ public class BackupFile implements Serializable {
         this.chunks = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Updates chunks list, adds chunk to chunks list if it doesnt exist or add to its replication degree if it already exists
+     */
     public void updateChunk(String chunkId){
         chunks.computeIfPresent(chunkId, (k, v) -> v + 1);
         chunks.putIfAbsent(chunkId, 1);
     }
 
+    /**
+     * Generates file ID, based on its path, owner, creation time and last modified time
+     * @param filePath file's path
+     * @return string with fileId
+     */
     private String generateFileId(String filePath) {
         String fileId = "";
         try {
@@ -56,5 +69,4 @@ public class BackupFile implements Serializable {
         }
         return fileId;
     }
-
 }

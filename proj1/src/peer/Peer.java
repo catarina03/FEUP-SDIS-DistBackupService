@@ -35,8 +35,8 @@ public class Peer implements RemoteInterface {
 
     private static final String ENHANCED = "2.0";
     private static int MAX_SIZE_CHUNK = 64000; // in bytes
-    private static final int NUMBER_OF_WORKERS_SENDING = 10;
-    private static final int NUMBER_OF_WORKERS_PROCESSING = 15;
+    private static final int NUMBER_OF_WORKERS_SENDING = 8;
+    private static final int NUMBER_OF_WORKERS_PROCESSING = 64;
 
     public static PeerMultiThreadControl multichannelscontrol;
     public static PeerMultiThreadBackup multichannelsbackup;
@@ -53,6 +53,17 @@ public class Peer implements RemoteInterface {
 
     public boolean recievedChunkMessage = false;
 
+    /**
+     * Peer Constructor
+     * @param version peer protocol version
+     * @param id peer id
+     * @param mcAddress multicast control address
+     * @param mcPort multicast control port
+     * @param mdbAddress multicast data backup address
+     * @param mdbPort multicast data backup port
+     * @param mdrAddress multicast data restore address 
+     * @param mdrPort multicast data restore port
+     */
     public Peer(String version, int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort,
             String mdrAddress, String mdrPort) {
         this.version = version;
@@ -81,12 +92,12 @@ public class Peer implements RemoteInterface {
 
             // connect to MDB channel
             multichannelsbackup = new PeerMultiThreadBackup(this, version, this.multicastDataBackupAddress,
-                    this.multicastDataBackupPort, NUMBER_OF_WORKERS_PROCESSING);
+                    this.multicastDataBackupPort, NUMBER_OF_WORKERS_SENDING);
             new Thread(multichannelsbackup).start();
 
             // connect to MDR channel
             multichannelsrestore = new PeerMultiThreadRestore(this, version, this.multicastDataRestoreAddress,
-                    this.multicastDataRestorePort, NUMBER_OF_WORKERS_PROCESSING);
+                    this.multicastDataRestorePort, NUMBER_OF_WORKERS_SENDING);
             new Thread(multichannelsrestore).start();
 
             terminator = new TerminatorThread(this);
@@ -97,6 +108,12 @@ public class Peer implements RemoteInterface {
 
     }
 
+    /**
+     * Main method of peer class
+     * @param args Terminal arguments
+     * @throws RemoteException
+     * @throws IOException
+     */
     public static void main(String args[]) throws RemoteException, IOException {
 
         if (args.length != 9) {
@@ -135,6 +152,9 @@ public class Peer implements RemoteInterface {
         }
     }
 
+    /**
+     * Back Up protocol implementation
+     */
     @Override
     public String backUp(String pathname, String degree){
         String result = "Peer" + id + ": received BACKUP request.";
@@ -177,6 +197,11 @@ public class Peer implements RemoteInterface {
         return result;
     }
 
+    /**
+     * Sends put chunk message initiating back up task
+     * @param chunk chunk to be backed up
+     * @param header message header
+     */
     public void sendPutChunk(BackupChunk chunk, Header header) {
         PutchunkMessage message = new PutchunkMessage(header, chunk, multichannelsbackup.getMulticastAddress(),
                 multichannelsbackup.getMulticastPort());
@@ -184,6 +209,9 @@ public class Peer implements RemoteInterface {
         backupTask.run();
     }
 
+    /**
+     * Delete protocol implementation
+     */
     @Override
     public String delete(String pathname) {
         String result = "Peer id-" + this.id + ": received DELETE request.";
@@ -206,6 +234,11 @@ public class Peer implements RemoteInterface {
         return result;
     }
 
+    /**
+     * Sends delete message initiating delete task
+     * 
+     * @param header message header
+     */
     public void sendDelete(Header header) {
         DeleteMessage message = new DeleteMessage(header, multichannelscontrol.getMulticastAddress(),
                 multichannelscontrol.getMulticastPort());
@@ -213,6 +246,10 @@ public class Peer implements RemoteInterface {
         deleteTask.run();
     }
 
+
+    /**
+     * Restore protocol implementation
+     */
     @Override
     public String restore(String pathname) {
         String result = "Peer" + this.id + ": received RESTORE request.";
@@ -238,6 +275,9 @@ public class Peer implements RemoteInterface {
         return result;
     }
 
+    /**
+     * Reclaim protocol implementation
+     */
     @Override
     public String reclaim(int maxDiskSpace) {
         String result = "Peer" + this.id + ": received RECLAIM request.";
@@ -267,11 +307,21 @@ public class Peer implements RemoteInterface {
         return result;
     }
 
+    /**
+     * State protocol implementation
+     */
     @Override
     public String state() {
         return this.storage.toString();
     }
+    
 
+    /**
+     * Getter for registry
+     * 
+     * @param host Given host
+     * @return Registry
+     */
     private static Registry getRegistry() {
         Registry registry = null;
 

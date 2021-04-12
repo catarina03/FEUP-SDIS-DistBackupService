@@ -10,6 +10,11 @@ import java.rmi.registry.Registry;
 
 public class TestApp {
     
+    /**
+     * Runs the TestApp
+     * @param args commands to be passed to the app
+     * @throws NotBoundException
+     */
     public static void main(String[] args) throws NotBoundException {
         // check arguments
         if (args.length > 4 || args.length < 2) {
@@ -82,6 +87,11 @@ public class TestApp {
         }
     }
 
+    /**
+     * Getter for registry
+     * @param host Given host
+     * @return Registry
+     */
     private static Registry getRegistry(String host) {
         Registry registry = null;
 
