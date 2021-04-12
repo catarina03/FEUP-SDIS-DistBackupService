@@ -38,6 +38,13 @@ public class Header {
         this.fileId = fileId;
     }
 
+    // HELLO Header
+    public Header(String version, String messageType, int senderId) {
+        this.version = version;
+        this.messageType = messageType;
+        this.senderId = senderId;
+    }
+
     public Header(ArrayList<String> array) {
         // Header PUTCHUNK
         if (array.size() == 6) {

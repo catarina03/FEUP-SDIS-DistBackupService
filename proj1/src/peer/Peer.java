@@ -5,11 +5,15 @@ import files.BackupFile;
 import files.FileManager;
 import messages.PutchunkMessage;
 import messages.DeleteMessage;
+import messages.HelloMessage;
 import messages.GetChunkMessage;
 import rmi.RemoteInterface;
 import tasks.PutchunkTask;
 import tasks.RemovedTask;
+import tasks.RemovedTask;
+import tasks.RemoveAllTask;
 import tasks.DeleteTask;
+import tasks.HelloTask;
 import tasks.GetChunkTask;
 
 import java.io.File;
@@ -41,6 +45,8 @@ public class Peer implements RemoteInterface {
     public int multicastDataBackupPort;
     public String multicastDataRestoreAddress;
     public int multicastDataRestorePort;
+
+    public boolean recievedChunkMessage = false;
 
     public Peer(String version, int id, String mcAddress, String mcPort, String mdbAddress, String mdbPort, String mdrAddress,
             String mdrPort) {
@@ -119,8 +125,17 @@ public class Peer implements RemoteInterface {
             e.printStackTrace();
         }
 
-    }
+        // if delete is enhanced
+        if(args[0].equals("1.3")){
+            Header header = new Header(args[0], "HELLO", Integer.parseInt(args[1]));
 
+            HelloMessage message = new HelloMessage(header, multichannelscontrol.getMulticastAddress(),
+                    multichannelscontrol.getMulticastPort());
+
+            HelloTask helloTask = new HelloTask(peer, message);
+            helloTask.run();
+        }
+    }
 
     @Override
     public String backUp(String pathname, String degree) {
@@ -152,6 +167,11 @@ public class Peer implements RemoteInterface {
         fileManager.readFileIntoChunks(absolutePath, systemFile);
         
         this.storage.files.putIfAbsent(systemFile.fileId, systemFile);
+
+        //for delete enhancement->update deleted files
+        if(this.storage.deletedFilesLocation.containsKey(systemFile.fileId)){
+            this.storage.deletedFilesLocation.remove(systemFile.fileId);
+        }
         
         return result;
     }
@@ -234,7 +254,6 @@ public class Peer implements RemoteInterface {
             System.out.println("Storage capacity upgraded to: " + maxDiskSpace);
         }
         else {
-            //if maxdiskspace == 0 delete everything
 
             //CHECK PEER STORAGE TO REMOVE ENOUGH CHUNKS TO FREE SPACE 
             // (ALGORITHM: REMOVER O CHUNK (OU CHUNKS) MAIS PEQUENO QUE CONSIGA LIBERTAR O ESPAÇO PEDIDO, MINIMO NUMERO DE CHUNKS)
@@ -242,18 +261,23 @@ public class Peer implements RemoteInterface {
             //ATUALIZAR MAPAS E ESPAÇOS 
             //SEND REMOVED FOR EACH DELETED CHUNK
 
-            System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
-
-            System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-            System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
-
+            // System.out.println("Storage capacity downgraded to: " + maxDiskSpace);
+            
+            // System.out.println("Before MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+            // System.out.println("Before CURRENT Storage capacity: " + this.storage.occupiedSpace);
+            
             this.storage.maxCapacityAllowed = maxDiskSpace;
+            
+            // System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
+            // System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
+            if(maxDiskSpace!=0){
 
-            System.out.println("After MAX Storage capacity: " + this.storage.maxCapacityAllowed);
-            System.out.println("After CURRENT Storage capacity: " + this.storage.occupiedSpace);
-
-            RemovedTask task = new RemovedTask(this, maxDiskSpace);
-            task.run();
+                RemovedTask task = new RemovedTask(this, maxDiskSpace);
+                task.run();
+            }else{
+                RemoveAllTask task = new RemoveAllTask(this);
+                task.run();
+            }
 
             // ON RECEIVING REMOVED, PEER UPDATES MAPAS 
             // SE ALGUM CHUNK DROPS BELOW DESIRED REPLICATION DEGREE ENTAO MANDA-SE PUTCHUNK PARA ESSE CHUNK

@@ -24,6 +24,9 @@ public class DeleteTask extends Task {
 
     public void run() {
         try {
+            //add file to deleted files
+            this.peer.storage.deletedFilesLocation.putIfAbsent(this.message.header.fileId,
+                    this.peer.storage.getFileChunksLocation(this.message.header.fileId));
 
             byte[] messageInBytes = this.message.convertToBytes();
 

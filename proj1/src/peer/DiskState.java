@@ -25,6 +25,9 @@ public class DiskState implements Serializable {
                                                                        // chunk I sent/store
     public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> chunksLocation; // This saves the peers where a
                                                                                      // certain sent chunk is
+
+    public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> deletedFilesLocation; // Keeps all the deleted files and their peer location
+    
     public transient ConcurrentHashMap<String, byte[]> toBeRestoredChunks; // This saves the body of the chunks that will be used to
                                                                       // restore a file
 
@@ -37,6 +40,7 @@ public class DiskState implements Serializable {
         this.chunksReplicationDegree = new ConcurrentHashMap<>();
         this.chunksLocation = new ConcurrentHashMap<>();
         this.toBeRestoredChunks=new ConcurrentHashMap<>();
+        this.deletedFilesLocation=new ConcurrentHashMap<>();
 
         new File("../peerStorage/peer" + peerId + "/chunks").mkdirs();
         new File("../peerStorage/peer" + peerId + "/files").mkdirs();
@@ -99,10 +103,20 @@ public class DiskState implements Serializable {
         return result;
     }
 
-// 
-// 
-// 
+    
+    public ConcurrentSkipListSet<Integer> getFileChunksLocation(String fileId){
+        BackupFile file = this.files.get(fileId);
 
+        ConcurrentSkipListSet<Integer> fileLocations = new ConcurrentSkipListSet<>();
+
+        for(String id: file.chunks.keySet()){
+            if(this.chunksLocation.containsKey(id)){
+                fileLocations.addAll(this.chunksLocation.get(id));
+            }
+        }
+
+        return fileLocations;
+    }
 
     public int getMaxNumberOfFileChunks(BackupFile backupFile){
         return (int) backupFile.chunks.mappingCount();
@@ -119,8 +133,6 @@ public class DiskState implements Serializable {
                 count++;
             }
         }
-
         return chunkNumber == count;
     }
-
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Random;
 
 public class ChunkTask extends Task{
     private final String ENHANCED = "2.0";
@@ -24,7 +25,13 @@ public class ChunkTask extends Task{
 
         byte[] messageInBytes = chunkMessage.convertToBytes();
 
-        sendChunkMessage(messageInBytes);
+        while(true){
+            if(!this.peer.recievedChunkMessage){    // FIXME:  should it have the host ID so I know which host im "overloading"?
+                System.out.println("I can send chunk: peer "+ this.peer.id);
+                sendChunkMessage(messageInBytes);  
+                break;              
+            }
+        }
     }
 
     private Runnable sendChunkMessage(byte[] messageInBytes) {
