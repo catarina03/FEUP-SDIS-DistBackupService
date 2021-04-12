@@ -1,16 +1,11 @@
 package messages;
 
-import files.BackupFile;
 import peer.Header;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class HelloMessage extends Message {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
 
     public HelloMessage(Header header, String address, int port) {
         super(header, address, port);
@@ -29,5 +24,4 @@ public class HelloMessage extends Message {
 
         return stream.toByteArray();
     }
-
 }

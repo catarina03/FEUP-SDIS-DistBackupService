@@ -2,17 +2,12 @@ package messages;
 
 import peer.Header;
 import files.BackupChunk;
-import files.Chunk;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class ChunkMessage extends Message {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
-
+    
     public ChunkMessage(Header header, BackupChunk chunk, String address, int port) {
         super(header, chunk, address, port);
     }

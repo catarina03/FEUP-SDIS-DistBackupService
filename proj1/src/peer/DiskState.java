@@ -21,8 +21,6 @@ public class DiskState implements Serializable {
     // chunks & files
     public ConcurrentHashMap<String, BackupChunk> backedUpChunks; // Other's chunks that this peer stored
     public ConcurrentHashMap<String, BackupFile> files; // Own files that initiator peer asked to be backed up
-    //public ConcurrentHashMap<String, Integer> chunksReplicationDegree; // This saves the replication degree for each
-                                                                       // chunk I sent/store
     public ConcurrentHashMap<String, ConcurrentSkipListSet<Integer>> chunksLocation; // This saves the peers where a
                                                                                      // certain sent chunk is
 
@@ -37,7 +35,6 @@ public class DiskState implements Serializable {
 
         this.backedUpChunks = new ConcurrentHashMap<>();
         this.files = new ConcurrentHashMap<>();
-        //this.chunksReplicationDegree = new ConcurrentHashMap<>();
         this.chunksLocation = new ConcurrentHashMap<>();
         this.toBeRestoredChunks= new ConcurrentHashMap<>();
         this.deletedFilesLocation= new ConcurrentHashMap<>();
@@ -58,7 +55,7 @@ public class DiskState implements Serializable {
             result += "\nDesired Replication degree: " + backupFile.desiredReplicationDegree;
 
             for (String chunkKey : backupFile.chunks.keySet()) {
-                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.desiredReplicationDegree + " - Located At: " + this.chunksLocation
+                result += "\nChunk [" + chunkKey + "] - Current Replication Degree: " + backupFile.chunks.get(chunkKey) + " - Located At: " + this.chunksLocation
                         .get(chunkKey);
             }
             result+="\n";
@@ -84,17 +81,6 @@ public class DiskState implements Serializable {
             result += "\nPerceived replication degree: " + this.chunksLocation.get(key).size();
             result += "\nLocations: " + this.chunksLocation.get(key) + "\n";
         }
-
-/*
-        result += "\n\n---------- REP DEGREE CHUNKS OF PEER " + this.peerId + " ----------\n\n";
-        for (String key : this.chunksReplicationDegree.keySet()) {
-            result += "\nID: " + key;
-            result += "\nPerceived replication degree: " + this.chunksReplicationDegree.get(key);
-            result += "\nLocations: " + this.chunksLocation.get(key);
-            result += "\nIn backup? " + this.backedUpChunks.containsKey(key) + "\n";
-        }
-
- */
 
         result += "\n\n---------- LOCATION CHUNKS OF PEER " + this.peerId + " ----------\n\n";
         for (String key : this.chunksLocation.keySet()) {

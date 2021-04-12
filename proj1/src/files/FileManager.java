@@ -28,14 +28,14 @@ public class FileManager {
 
             int chunk_no = 0;
             BackupChunk chunk = new BackupChunk();
-            byte[] buffer = new byte[MAX_SIZE_CHUNK]; // TEM QUE SER MENOS
+            byte[] buffer = new byte[MAX_SIZE_CHUNK];
             
             int size;
             while ((size = stream.read(buffer)) > 0) {
                 chunk = new BackupChunk(file.fileId + chunk_no, file.fileId, chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header(this.peer.version, "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
                 
-                file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
+                file.chunks.putIfAbsent(chunk.id, 0);
 
                 peer.sendPutChunk(chunk, header);
 
@@ -49,7 +49,7 @@ public class FileManager {
                 chunk = new BackupChunk(file.fileId + chunk_no, file.fileId, chunk_no, size, file.desiredReplicationDegree, Arrays.copyOf(buffer, size));
                 Header header = new Header(this.peer.version, "PUTCHUNK", this.peer.id, file.fileId, chunk_no, file.desiredReplicationDegree);
 
-                file.chunks.putIfAbsent(chunk.id, file.desiredReplicationDegree);
+                file.chunks.putIfAbsent(chunk.id, 0);
 
                 peer.sendPutChunk(chunk, header);
             }
@@ -57,9 +57,6 @@ public class FileManager {
             e.printStackTrace();
         }
     }
-
-
-
 
     public void recoverState() {
         // iterate files
@@ -125,7 +122,6 @@ public class FileManager {
 
     }
 
-
     public void updateState() {
         File diskStateFile = new File("../peerStorage/peer" + this.peer.id + "/diskState.ser");
         FileOutputStream fileOutputStream;
@@ -140,7 +136,6 @@ public class FileManager {
             e.printStackTrace();
         }
     }
-
 
     public void saveFileToDirectory(int peerId, BackupFile file) {
         File newFile = new File("../peerStorage/peer" + peerId + "/files/" + file.fileId + ".ser");
@@ -157,7 +152,6 @@ public class FileManager {
         }
     }
 
-
     public void saveChunkToDirectory(BackupChunk chunk, int peerId, int chunkNo, String fileId) {
         File newFile = new File("../peerStorage/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
         FileOutputStream fileOutputStream;
@@ -173,7 +167,6 @@ public class FileManager {
         }
     }
 
-
     public void deleteFileFromDirectory(int peerId, String fileId){
         File newFile = new File("../peerStorage/peer" + peerId + "/files/" + fileId + ".ser");
         newFile.delete();
@@ -183,5 +176,4 @@ public class FileManager {
         File newFile = new File("../peerStorage/peer" + peerId + "/chunks/" + chunkNo + "_" + fileId + ".ser");
         newFile.delete();
     }
-
 }

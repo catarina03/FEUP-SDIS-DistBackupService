@@ -2,16 +2,9 @@ package messages;
 
 import files.Chunk;
 import peer.Header;
-
 import java.io.IOException;
-import java.io.Serializable;
 
-public abstract class Message implements Serializable {
-    
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
+public abstract class Message{
     
     public Header header;
     public Chunk body;

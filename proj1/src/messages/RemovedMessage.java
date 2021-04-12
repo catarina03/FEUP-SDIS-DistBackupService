@@ -6,11 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class RemovedMessage extends Message{
-    
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
 
     //<Version> REMOVED <SenderId> <FileId> <ChunkNo> <CRLF><CRLF> 
     public RemovedMessage(Header header, String address, int port) {

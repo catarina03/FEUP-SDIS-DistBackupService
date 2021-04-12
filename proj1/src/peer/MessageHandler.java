@@ -58,18 +58,6 @@ public class MessageHandler {
 
         switch (newHeader.messageType) {
         case "PUTCHUNK":
-
-            /*
-             * System.out.println("Sender id: " + newHeader.senderId);
-             * System.out.println("Peer id: " + this.peer.id); long sum =
-             * this.peer.storage.occupiedSpace + body.length;
-             * System.out.println("Occupied space: " + this.peer.storage.occupiedSpace +
-             * " Body length: " + body.length + " Sum: " + sum);
-             * System.out.println("Max capacity: " + this.peer.storage.maxCapacityAllowed);
-             * System.out.println("Contains file in files? " +
-             * this.peer.storage.files.containsKey(newHeader.fileId));
-             * 
-             */
             System.out.println("Max/Current storage space: " + this.peer.storage.maxCapacityAllowed + "/"
                     + this.peer.storage.occupiedSpace);
 
@@ -97,16 +85,27 @@ public class MessageHandler {
                     ConcurrentSkipListSet<Integer> currentChunkStorageList = this.peer.storage.chunksLocation
                             .computeIfAbsent(chunkId, value -> new ConcurrentSkipListSet<>());
 
-                    // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
-                    // PRESENT DOES NOTHING)
-                    if (!currentChunkStorageList.contains(newHeader.senderId)) {
-                        currentChunkStorageList.add(newHeader.senderId);
-                    } else {
-                        // IF CHUNK FILE IS PRESENT IN FILE MAP IT INCREASES REPLICATION DEGREE OF THE
-                        // BACKED UP CHUNK IN THE MAP
-                        if (this.peer.storage.files.containsKey(newHeader.fileId)) {
-                            BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
-                            backedUpFile.updateChunk(chunkId);
+                    // IF CHUNK FILE IS PRESENT IN FILE MAP IT INCREASES REPLICATION DEGREE OF THE
+                    // BACKED UP CHUNK IN THE MAP
+                    if (this.peer.storage.files.containsKey(newHeader.fileId)) {
+                        // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
+                        // PRESENT DOES NOTHING)
+                        if (!currentChunkStorageList.contains(newHeader.senderId)) {
+                            currentChunkStorageList.add(newHeader.senderId);
+                            // BackupFile backedUpFile = this.peer.storage.files.get(newHeader.fileId);
+                            // backedUpFile.updateChunk(chunkId);
+                            System.out.println(
+                                    "THESE ARE MY CHUNKS: " + this.peer.storage.files.get(newHeader.fileId).chunks);
+                            this.peer.storage.files.get(newHeader.fileId).updateChunk(chunkId);
+                            System.out.println("THESE ARE MY CHUNKS AFTER UPDATE: "
+                                    + this.peer.storage.files.get(newHeader.fileId).chunks);
+                        }
+
+                    }else{
+                        // IF CHUNK IS NOT PRESENT IN THE CHUNK LOCATION MAP IT UPDATES IT (IF ITS
+                        // PRESENT DOES NOTHING)
+                        if (!currentChunkStorageList.contains(newHeader.senderId)) {
+                            currentChunkStorageList.add(newHeader.senderId);
                         }
                     }
                 }
@@ -157,27 +156,6 @@ public class MessageHandler {
                 break; // it needs to leave, otherwise it sleeps
                 // FIXME: it isnt leaving
             }
-
-            /*
-             * // not host recieving chunks -> peer sending chunks -> detected sent chunk in
-             * // channel -> makes boolean true for a certain ammount of time to avoid
-             * sending // chunk and overloading the host peer this.peer.recievedChunkMessage
-             * = true; // every chunk message perceived, boolean goes true
-             * 
-             * // waits some time before making boolean false again Random rand = new
-             * Random(); int upperbound = 401; int randomDelay = rand.nextInt(upperbound);
-             * 
-             * System.out.println("The peer " + this.peer.id +
-             * " is sleeping in the chunk handler. It will not send chunks in the meantime."
-             * );
-             * 
-             * try { Thread.sleep(randomDelay); //FIXME: i shall not sleep } catch
-             * (InterruptedException e) { // TODO Auto-generated catch block
-             * e.printStackTrace(); }
-             * 
-             * this.peer.recievedChunkMessage = false;
-             * 
-             */
             break;
 
         case "DELETE":
@@ -236,6 +214,16 @@ public class MessageHandler {
                             this.peer.storage.backedUpChunks.get(removedChunkId));
                     storeTask.run();
                 }
+            }
+
+            // to update locations on initiator peer
+            if (newHeader.senderId != this.peer.id && this.peer.storage.files.containsKey(newHeader.fileId)) {
+                ConcurrentSkipListSet<Integer> locations = this.peer.storage.chunksLocation.get(removedChunkId);
+                if (locations != null) {
+                    locations.remove(newHeader.senderId);
+                }
+
+                this.peer.storage.files.get(newHeader.fileId).chunks.computeIfPresent(removedChunkId, (k,v)->v-1);
             }
 
             break;

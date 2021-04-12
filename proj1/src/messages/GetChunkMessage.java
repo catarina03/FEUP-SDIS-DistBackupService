@@ -6,10 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class GetChunkMessage extends Message {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
 
     public GetChunkMessage(Header header, String address, int port) {
         super(header, address, port);
@@ -28,5 +24,4 @@ public class GetChunkMessage extends Message {
 
         return stream.toByteArray();
     }
-
 }
